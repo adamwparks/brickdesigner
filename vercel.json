@@ -1,8 +1,8 @@
 {
     "rewrites": [
         {
-        "source": "/generate",
-        "destination": "/api/generate"
+        "source": "/index",
+        "destination": "/api/index"
         }
     ]
 }
