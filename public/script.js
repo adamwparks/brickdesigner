@@ -28,12 +28,54 @@ document.getElementById('lego-form').addEventListener('submit', async function (
     document.getElementById('output').classList.remove('hidden');
 
     // Extract Parts Used Summary
-    const partsUsedMatch = data.result.match(/Parts Used Summary:(.*?)$/is);
-    if (partsUsedMatch) {
-      const partsSummary = partsUsedMatch[1].trim();
-      await renderGrid(partsSummary);
+    function extractPartsSummary(fullText) {
+      // 1. Find the "Parts Used Summary" section
+      const partsSectionMatch = fullText.match(/Parts Used Summary:(.*)/is);
+      if (!partsSectionMatch) {
+        console.warn('No Parts Used Summary section found.');
+        return [];
+      }
+    
+      const partsSection = partsSectionMatch[1].trim();
+    
+      // 2. Split lines
+      const lines = partsSection.split('\n');
+    
+      const parts = [];
+    
+      // 3. Parse each line
+      for (let line of lines) {
+        line = line.trim();
+        if (line.startsWith('-')) {
+          line = line.slice(1).trim(); // Remove leading "-"
+        }
+        if (line.length === 0) continue; // Skip blank lines
+    
+        const match = line.match(/^(\d+)x\s(\d+x\d+)\s.+?(?:\((.*?)\))?/i);
+    
+        if (match) {
+          const quantity = parseInt(match[1], 10);
+          const size = match[2];
+          const color = match[3] ? match[3].toLowerCase() : 'gray'; // Default color gray if not specified
+    
+          for (let i = 0; i < quantity; i++) {
+            parts.push({ size, color });
+          }
+        } else {
+          console.warn('Could not parse line:', line);
+        }
+      }
+    
+      return parts;
+    }
+    
+    const partsArray = extractPartsSummary(data.result);
+    console.log('Extracted parts array:', partsArray);
+
+    if (partsArray.length > 0) {
+      await renderGrid(partsArray);
     } else {
-      console.warn('No parts used summary found.');
+      console.warn('No parts found to render.');
     }
 
   } catch (error) {
@@ -43,65 +85,34 @@ document.getElementById('lego-form').addEventListener('submit', async function (
   }
 });
 
-async function renderGrid(partsSummaryText) {
-  console.log('Parts Summary Text passed into renderGrid:', partsSummaryText);
+async function renderGrid(parts) {
   const gridCanvas = document.getElementById('grid-canvas');
   gridCanvas.innerHTML = "";
-
-  const parts = [];
-
-  const lines = partsSummaryText.split('\n');
-  for (let line of lines) {
-    line = line.trim();
-    // Remove leading "- " if it exists
-    if (line.startsWith('-')) {
-      line = line.slice(1).trim();
-    }
-  
-    const match = line.match(/^(\d+)x\s(\d+x\d+)\s.*?(?:\((.*?)\))?$/i);
-    if (match) {
-      const quantity = parseInt(match[1]);
-      const size = match[2];
-      const color = match[3] ? match[3].toLowerCase() : "gray";
-  
-      for (let i = 0; i < quantity; i++) {
-        parts.push({ size, color });
-      }
-    }
-  }
-  
 
   if (parts.length === 0) {
     gridCanvas.innerHTML = "<p class='text-gray-500'>No valid parts found for visualization.</p>";
     return;
   }
 
-  // Set up grid to have flexible columns
-  gridCanvas.style.display = 'grid';
-  gridCanvas.style.gridTemplateColumns = 'repeat(auto-fill, minmax(30px, 1fr))';
-  gridCanvas.style.gap = '2px';
-
   let currentRowWidth = 0;
-  const maxRowStuds = 10; // How wide a layer can be before wrapping
+  const maxRowStuds = 10; // Width of one layer
   let currentLayer = document.createElement('div');
-  currentLayer.className = 'flex flex-wrap gap-1 mb-6'; // New layer (row)
-
+  currentLayer.className = 'flex flex-wrap gap-1 mb-6';
   gridCanvas.appendChild(currentLayer);
-  
+
   for (let part of parts) {
     const brick = document.createElement('div');
     const colorClass = colorNameToTailwind(part.color);
 
     const [studWidth, studHeight] = part.size.split('x').map(Number);
-    const brickPixelWidth = studWidth * 30; // Each stud = 30px
-    const brickPixelHeight = 30; // One row high for now
+    const brickPixelWidth = studWidth * 30;
+    const brickPixelHeight = 30;
 
     brick.className = `${colorClass} border border-gray-300 rounded-md`;
     brick.style.width = `${brickPixelWidth}px`;
     brick.style.height = `${brickPixelHeight}px`;
 
     if (currentRowWidth + studWidth > maxRowStuds) {
-      // Need a new layer
       currentLayer = document.createElement('div');
       currentLayer.className = 'flex flex-wrap gap-1 mb-6';
       gridCanvas.appendChild(currentLayer);
