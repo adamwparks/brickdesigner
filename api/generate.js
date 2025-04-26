@@ -27,7 +27,7 @@ Please suggest 1-3 LEGO build ideas based on the above, and provide step-by-step
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o', // or 'gpt-4-turbo'
+      model: 'gpt-4o-mini', // or 'gpt-4-turbo'
       messages: [
         {
           role: "system",
