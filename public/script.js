@@ -27,36 +27,37 @@ document.getElementById('lego-form').addEventListener('submit', async function (
     document.getElementById('build-result').innerHTML = data.result.replace(/\n/g, '<br/>');
     document.getElementById('output').classList.remove('hidden');
 
-    // Extract Parts Used Summary
     function extractPartsSummary(fullText) {
-      // 1. Find the "Parts Used Summary" section
+      // 1. Find the Parts Used Summary section
       const partsSectionMatch = fullText.match(/Parts Used Summary:(.*)/is);
       if (!partsSectionMatch) {
         console.warn('No Parts Used Summary section found.');
         return [];
       }
     
-      const partsSection = partsSectionMatch[1].trim();
+      let partsSection = partsSectionMatch[1].trim();
     
-      // 2. Split lines
+      // 2. Basic markdown cleanup
+      partsSection = partsSection
+        .replace(/\*\*/g, '')       // Remove all bold markers **
+        .replace(/\*/g, '')         // Remove single asterisks if any
+        .replace(/^\- /gm, '')      // Remove leading dashes
+        .replace(/^\s*-\s*/gm, '')  // Handle spaces before dash
+        .trim();
+    
       const lines = partsSection.split('\n');
-    
       const parts = [];
     
-      // 3. Parse each line
+      // 3. Parse cleaned lines
       for (let line of lines) {
         line = line.trim();
-        if (line.startsWith('-')) {
-          line = line.slice(1).trim(); // Remove leading "-"
-        }
         if (line.length === 0) continue; // Skip blank lines
     
         const match = line.match(/^(\d+)x\s(\d+x\d+)\s.+?(?:\((.*?)\))?/i);
-    
         if (match) {
           const quantity = parseInt(match[1], 10);
           const size = match[2];
-          const color = match[3] ? match[3].toLowerCase() : 'gray'; // Default color gray if not specified
+          const color = match[3] ? match[3].toLowerCase() : 'gray'; // Default gray if missing
     
           for (let i = 0; i < quantity; i++) {
             parts.push({ size, color });
@@ -67,7 +68,7 @@ document.getElementById('lego-form').addEventListener('submit', async function (
       }
     
       return parts;
-    }
+    }    
     
     const partsArray = extractPartsSummary(data.result);
     console.log('Extracted parts array:', partsArray);
@@ -95,7 +96,7 @@ async function renderGrid(parts) {
   }
 
   let currentRowWidth = 0;
-  const maxRowStuds = 10; // Width of one layer
+  const maxRowStuds = 10;
   let currentLayer = document.createElement('div');
   currentLayer.className = 'flex flex-wrap gap-1 mb-6';
   gridCanvas.appendChild(currentLayer);
@@ -106,11 +107,13 @@ async function renderGrid(parts) {
 
     const [studWidth, studHeight] = part.size.split('x').map(Number);
     const brickPixelWidth = studWidth * 30;
-    const brickPixelHeight = 30;
+    const brickPixelHeight = studHeight * 30;
 
-    brick.className = `${colorClass} border border-gray-300 rounded-md`;
+    brick.className = `${colorClass} border border-gray-300 rounded-md relative overflow-hidden flex flex-wrap justify-center items-center`;
     brick.style.width = `${brickPixelWidth}px`;
     brick.style.height = `${brickPixelHeight}px`;
+    brick.style.position = 'relative';
+    brick.style.padding = '4px'; // Give space for studs
 
     if (currentRowWidth + studWidth > maxRowStuds) {
       currentLayer = document.createElement('div');
@@ -119,9 +122,20 @@ async function renderGrid(parts) {
       currentRowWidth = 0;
     }
 
+    // 👉 Create studs dynamically
+    const totalStuds = studWidth * studHeight;
+
+    for (let i = 0; i < totalStuds; i++) {
+      const stud = document.createElement('div');
+      stud.className = 'w-4 h-4 bg-white/70 rounded-full m-[2px] shadow-inner';
+      brick.appendChild(stud);
+    }
+
     currentLayer.appendChild(brick);
     currentRowWidth += studWidth;
   }
 }
+
+
 
 
