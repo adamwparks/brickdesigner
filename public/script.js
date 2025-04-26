@@ -22,6 +22,7 @@ document.getElementById('lego-form').addEventListener('submit', async function (
     if (!response.ok) throw new Error('Failed to generate build.');
 
     const data = await response.json();
+    console.log('Full OpenAI response:', data.result);
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('build-result').innerHTML = data.result.replace(/\n/g, '<br/>');
     document.getElementById('output').classList.remove('hidden');
@@ -43,6 +44,7 @@ document.getElementById('lego-form').addEventListener('submit', async function (
 });
 
 async function renderGrid(partsSummaryText) {
+  console.log('Parts Summary Text passed into renderGrid:', partsSummaryText);
   const gridCanvas = document.getElementById('grid-canvas');
   gridCanvas.innerHTML = "";
 
@@ -51,18 +53,23 @@ async function renderGrid(partsSummaryText) {
   const lines = partsSummaryText.split('\n');
   for (let line of lines) {
     line = line.trim();
-    const match = line.match(/^(\d+)x\s(\d+x\d+)\s.*$/i);
+    // Remove leading "- " if it exists
+    if (line.startsWith('-')) {
+      line = line.slice(1).trim();
+    }
+  
+    const match = line.match(/^(\d+)x\s(\d+x\d+)\s.*?(?:\((.*?)\))?$/i);
     if (match) {
       const quantity = parseInt(match[1]);
       const size = match[2];
-      const colorMatch = line.match(/\((.*?)\)/); // extract color inside parentheses
-      const color = colorMatch ? colorMatch[1].toLowerCase() : "gray";
-
+      const color = match[3] ? match[3].toLowerCase() : "gray";
+  
       for (let i = 0; i < quantity; i++) {
         parts.push({ size, color });
       }
     }
   }
+  
 
   if (parts.length === 0) {
     gridCanvas.innerHTML = "<p class='text-gray-500'>No valid parts found for visualization.</p>";
