@@ -1,7 +1,5 @@
 import { OpenAI } from 'openai';
 
-config(); // Loads environment variables from .env (only needed locally, Vercel uses dashboard vars)
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -24,7 +22,7 @@ ${partsList}
 
 Theme: ${theme || "No specific theme"}
 
-Please suggest 1–3 LEGO build ideas based on the above, and provide step-by-step assembly instructions for one build.
+Please suggest 1-3 LEGO build ideas based on the above, and provide step-by-step assembly instructions for one build.
 `;
 
   try {
