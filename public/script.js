@@ -15,7 +15,7 @@ document.getElementById('lego-form').addEventListener('submit', async function (
 
   try {
     // Send parts list + theme to backend
-    const response = await fetch('http://localhost:3001/generate', {
+    const response = await fetch('/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ partsList: parts, theme: theme })
