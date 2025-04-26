@@ -87,6 +87,24 @@ document.getElementById('lego-form').addEventListener('submit', async function (
 });
 
 async function renderGrid(parts) {
+  function colorNameToTailwind(colorName) {
+    const colorMap = {
+      red: 'bg-red-500',
+      yellow: 'bg-yellow-400',
+      blue: 'bg-blue-400',
+      green: 'bg-green-400',
+      black: 'bg-black',
+      white: 'bg-white',
+      gray: 'bg-gray-400',
+      purple: 'bg-purple-400',
+      orange: 'bg-orange-400',
+      brown: 'bg-yellow-800'
+      // Add more mappings if needed
+    };
+  
+    return colorMap[colorName] || 'bg-gray-400'; // Default fallback
+  }
+  
   const gridCanvas = document.getElementById('grid-canvas');
   gridCanvas.innerHTML = "";
 
