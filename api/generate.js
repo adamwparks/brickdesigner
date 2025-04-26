@@ -1,5 +1,4 @@
 import { OpenAI } from 'openai';
-import { config } from 'dotenv';
 
 config(); // Loads environment variables from .env (only needed locally, Vercel uses dashboard vars)
 

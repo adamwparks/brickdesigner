@@ -15,5 +15,8 @@
     "url": "https://github.com/adamwparks/brickdesigner/issues"
   },
   "homepage": "https://github.com/adamwparks/brickdesigner#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "openai": "^4.20.0"
+  }
 }
