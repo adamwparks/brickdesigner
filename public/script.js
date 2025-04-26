@@ -9,12 +9,10 @@ document.getElementById('lego-form').addEventListener('submit', async function (
     return;
   }
 
-  // Show loading animation and hide previous results
   document.getElementById('loading').classList.remove('hidden');
   document.getElementById('output').classList.add('hidden');
 
   try {
-    // Send parts list + theme to backend
     const response = await fetch('/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -24,14 +22,18 @@ document.getElementById('lego-form').addEventListener('submit', async function (
     if (!response.ok) throw new Error('Failed to generate build.');
 
     const data = await response.json();
-
-    // Show the result
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('build-result').innerHTML = data.result.replace(/\n/g, '<br/>');
     document.getElementById('output').classList.remove('hidden');
 
-    // Simple grid visualization (placeholder)
-    renderGrid();
+    // Extract Parts Used Summary
+    const partsUsedMatch = data.result.match(/Parts Used Summary:(.*?)$/is);
+    if (partsUsedMatch) {
+      const partsSummary = partsUsedMatch[1].trim();
+      await renderGrid(partsSummary);
+    } else {
+      console.warn('No parts used summary found.');
+    }
 
   } catch (error) {
     console.error(error);
@@ -40,19 +42,68 @@ document.getElementById('lego-form').addEventListener('submit', async function (
   }
 });
 
-/**
- * Simple 2D Grid Renderer — placeholder version
- * Later we'll base this on actual parts usage
- */
-function renderGrid() {
+async function renderGrid(partsSummaryText) {
   const gridCanvas = document.getElementById('grid-canvas');
-  gridCanvas.innerHTML = ""; // Clear previous grid
+  gridCanvas.innerHTML = "";
 
-  const colors = ['bg-red-500', 'bg-yellow-400', 'bg-blue-400', 'bg-black'];
+  const parts = [];
 
-  for (let i = 0; i < 20; i++) {
+  const lines = partsSummaryText.split('\n');
+  for (let line of lines) {
+    line = line.trim();
+    const match = line.match(/^(\d+)x\s(\d+x\d+)\s.*$/i);
+    if (match) {
+      const quantity = parseInt(match[1]);
+      const size = match[2];
+      const colorMatch = line.match(/\((.*?)\)/); // extract color inside parentheses
+      const color = colorMatch ? colorMatch[1].toLowerCase() : "gray";
+
+      for (let i = 0; i < quantity; i++) {
+        parts.push({ size, color });
+      }
+    }
+  }
+
+  if (parts.length === 0) {
+    gridCanvas.innerHTML = "<p class='text-gray-500'>No valid parts found for visualization.</p>";
+    return;
+  }
+
+  // Set up grid to have flexible columns
+  gridCanvas.style.display = 'grid';
+  gridCanvas.style.gridTemplateColumns = 'repeat(auto-fill, minmax(30px, 1fr))';
+  gridCanvas.style.gap = '2px';
+
+  let currentRowWidth = 0;
+  const maxRowStuds = 10; // How wide a layer can be before wrapping
+  let currentLayer = document.createElement('div');
+  currentLayer.className = 'flex flex-wrap gap-1 mb-6'; // New layer (row)
+
+  gridCanvas.appendChild(currentLayer);
+  
+  for (let part of parts) {
     const brick = document.createElement('div');
-    brick.className = `w-7 h-7 rounded-md ${colors[i % colors.length]} border border-gray-300`;
-    gridCanvas.appendChild(brick);
+    const colorClass = colorNameToTailwind(part.color);
+
+    const [studWidth, studHeight] = part.size.split('x').map(Number);
+    const brickPixelWidth = studWidth * 30; // Each stud = 30px
+    const brickPixelHeight = 30; // One row high for now
+
+    brick.className = `${colorClass} border border-gray-300 rounded-md`;
+    brick.style.width = `${brickPixelWidth}px`;
+    brick.style.height = `${brickPixelHeight}px`;
+
+    if (currentRowWidth + studWidth > maxRowStuds) {
+      // Need a new layer
+      currentLayer = document.createElement('div');
+      currentLayer.className = 'flex flex-wrap gap-1 mb-6';
+      gridCanvas.appendChild(currentLayer);
+      currentRowWidth = 0;
+    }
+
+    currentLayer.appendChild(brick);
+    currentRowWidth += studWidth;
   }
 }
+
+
