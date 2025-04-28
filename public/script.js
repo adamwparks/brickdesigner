@@ -1,3 +1,5 @@
+import { initializeGrid, isPlacementSupported, markBrickOnGrid } from './gridOccupancy.js';
+
 document.getElementById('lego-form').addEventListener('submit', async function (e) {
   e.preventDefault();
 
@@ -113,94 +115,7 @@ function parsePlacementInstructions(instructionsText) {
   return parts;
 };
 
-// async function renderGrid(parts) {
-//   function colorNameToTailwind(colorName) {
-//     const colorMap = {
-//       red: 'bg-red-500',
-//       yellow: 'bg-yellow-400',
-//       blue: 'bg-blue-400',
-//       green: 'bg-green-400',
-//       black: 'bg-black',
-//       white: 'bg-white',
-//       gray: 'bg-gray-400',
-//       purple: 'bg-purple-400',
-//       orange: 'bg-orange-400',
-//       brown: 'bg-yellow-800'
-//       // Add more mappings if needed
-//     };
-    
-//     return colorMap[colorName] || 'bg-gray-400'; // Default fallback
-//   }
-  
-//   const gridCanvas = document.getElementById('grid-canvas');
-//   gridCanvas.innerHTML = "";
-
-//   if (parts.length === 0) {
-//     gridCanvas.innerHTML = "<p class='text-gray-500'>No valid parts found for visualization.</p>";
-//     return;
-//   }
-
-//   let currentRowWidth = 0;
-//   const maxRowStuds = 10;
-//   let currentLayer = document.createElement('div');
-//   currentLayer.className = 'flex flex-wrap gap-1 mb-6';
-//   gridCanvas.appendChild(currentLayer);
-
-//   for (let part of parts) {
-//     const brick = document.createElement('div');
-//     const colorClass = colorNameToTailwind(part.color);
-//     console.log('colors in the color map', colorClass);
-
-//     const [studWidth, studHeight] = part.size.split('x').map(Number);
-//     const brickPixelWidth = studWidth * 30;
-//     const brickPixelHeight = studHeight * 30;
-
-//     brick.className = `${colorClass} border border-gray-300 rounded-md relative overflow-hidden flex flex-wrap justify-center items-center`;
-//     brick.style.width = `${brickPixelWidth}px`;
-//     brick.style.height = `${brickPixelHeight}px`;
-//     brick.style.position = 'relative';
-//     brick.style.padding = '4px'; // Give space for studs
-
-//     if (currentRowWidth + studWidth > maxRowStuds) {
-//       currentLayer = document.createElement('div');
-//       currentLayer.className = 'flex flex-wrap gap-1 mb-6';
-//       gridCanvas.appendChild(currentLayer);
-//       currentRowWidth = 0;
-//     }
-
-//     // 👉 Create studs dynamically
-//     const totalStuds = studWidth * studHeight;
-
-//     for (let i = 0; i < totalStuds; i++) {
-//       const stud = document.createElement('div');
-//       stud.className = 'w-4 h-4 bg-white/70 rounded-full m-[2px] shadow-inner';
-//       brick.appendChild(stud);
-//     }
-
-//     currentLayer.appendChild(brick);
-//     currentRowWidth += studWidth;
-//   }
-// };
-
 async function renderGridFromPlacement(parts) {
-  function colorNameToTailwind(colorName) {
-    const colorMap = {
-      red: 'bg-red-500',
-      yellow: 'bg-yellow-400',
-      blue: 'bg-blue-400',
-      green: 'bg-green-400',
-      black: 'bg-black',
-      white: 'bg-white',
-      gray: 'bg-gray-400',
-      purple: 'bg-purple-400',
-      orange: 'bg-orange-400',
-      brown: 'bg-yellow-800'
-      // Add more mappings if needed
-    };
-    
-    return colorMap[colorName] || 'bg-gray-400'; // Default fallback
-  }
-
   const gridCanvas = document.getElementById('grid-canvas');
   gridCanvas.innerHTML = "";
 
@@ -208,30 +123,45 @@ async function renderGridFromPlacement(parts) {
   const gridSize = 10;
   const studSizePx = 30;
 
+  const occupancyGrid = initializeGrid(); // New: Create fresh empty grid
+
+  // Set up the visual grid
   gridCanvas.style.display = 'grid';
   gridCanvas.style.gridTemplateColumns = `repeat(${gridSize}, ${studSizePx}px)`;
   gridCanvas.style.gridTemplateRows = `repeat(${gridSize}, ${studSizePx}px)`;
   gridCanvas.style.gap = '2px';
   gridCanvas.className = 'bg-gray-100 p-2 rounded-lg';
 
+  // Build a map for bricks on this layer
   const gridMap = {};
 
   for (let part of parts) {
-    const { size, color, x, y, z } = part;
+    const { size, color, x, y, z, orientation } = part;
+    const [studWidth, studLength] = size.split('x').map(Number);
 
-    const key = `${x},${y}`;
-
+    // Check if user selected a specific layer
     if (selectedLayer !== "all" && parseInt(selectedLayer) !== z) {
-      continue; // Skip bricks not in the selected layer
+      continue;
     }
 
-    if (!gridMap[key]) {
-      gridMap[key] = [];
-    }
+    // Check if the brick placement is supported
+    if (isPlacementSupported(x, y, z, studWidth, studLength, orientation, occupancyGrid)) {
+      const key = `${x},${y}`;
 
-    gridMap[key].push({ size, color, z });
+      if (!gridMap[key]) {
+        gridMap[key] = [];
+      }
+
+      gridMap[key].push({ size, color, z, orientation });
+
+      // After successfully placing it, mark the grid occupied
+      markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
+    } else {
+      console.warn(`Unsupported placement for brick at (${x},${y},${z}). Skipping.`);
+    }
   }
 
+  // Now visually render all bricks
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
       const cell = document.createElement('div');
@@ -239,14 +169,28 @@ async function renderGridFromPlacement(parts) {
 
       const key = `${col},${row}`;
       if (gridMap[key]) {
+        // Pick the top-most brick for this stud
         gridMap[key].sort((a, b) => a.z - b.z);
-
         const topBrick = gridMap[key][gridMap[key].length - 1];
 
         const brick = document.createElement('div');
-        brick.className = `${colorNameToTailwind(topBrick.color)} border border-gray-400 rounded-md w-4 h-4`;
-        brick.title = `${topBrick.size} at z=${topBrick.z}`;
-        brick.style.opacity = Math.min(1, 0.5 + topBrick.z * 0.1);
+        brick.className = `${colorNameToTailwind(topBrick.color)} border border-gray-400 rounded-md w-4 h-4 transition-all duration-500 ease-out`;
+        brick.title = `${topBrick.size} at z=${topBrick.z}, facing ${topBrick.orientation}`;
+        
+        // Start above the canvas
+        brick.style.transform = 'translateY(-100px)';
+        brick.style.opacity = '0';
+        
+        // Force reflow (important to trigger transition)
+        void brick.offsetWidth;
+        
+        // Animate down to position
+        setTimeout(() => {
+          brick.style.transform = 'translateY(0)';
+          brick.style.opacity = '1';
+        }, Math.random() * 300); // Slight random delay for natural "staggered" drop effect
+
+        brick.style.opacity = Math.min(1, 0.5 + topBrick.z * 0.1); // Optional: lighter for higher levels
 
         cell.appendChild(brick);
       }
