@@ -174,10 +174,10 @@ async function renderGridFromPlacement(parts) {
         gridMap[key] = [];
       }
 
-      gridMap[key].push({ size, color, z, orientation });
-
       // After successfully placing it, mark the grid occupied
       markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
+      gridMap[key].push({ size, color, z, orientation });
+
     } else {
       console.warn(`Unsupported placement for brick at (${x},${y},${z}). Skipping.`);
     }
