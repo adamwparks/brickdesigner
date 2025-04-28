@@ -42,17 +42,18 @@ Important building rules:
   - x = left-right position (0 to 9)
   - y = front-back position (0 to 9)
   - z = vertical level (0 = base layer)
+- Each brick must specify orientation (Facing North, East, South, or West).
 - Only connect bricks using available top studs.
 - Bricks must be supported by bricks below or the ground.
 - Bricks must fully fit within the 10x10 base. No part can hang off the edge.
 - No floating or side-attachments unless using special SNOT bricks (assume standard bricks unless told otherwise).
 
 Output strict instructions in the following format:
-- For each build step:
-  - Write exactly:  
-    Step #: Place {size} {color} {brick_type} at ({x},{y},{z})
-  - Example:  
-    Step 1: Place 2x4 red brick at (0,0,0)
+  - For each build step, output exactly:
+    Step #: Place {size} {color} {brick_type} at ({x},{y},{z}), facing {direction}
+  -Examples:
+    Step 1: Place 2x4 red brick at (0,0,0), facing East
+    Step 2: Place 1x2 yellow plate at (2,0,1), facing North
 
 - Only use plain text in this format.  
 - Do not use bullet points, markdown, asterisks, or extra descriptions.
@@ -68,9 +69,10 @@ After all steps, output a "Parts Used Summary:"
 
 Constraints:
 - If a part cannot be placed following these rules, skip it.
+- No floating bricks.
 - Stack vertically where possible.
 - Use simple and stable construction techniques.
-- Limit instructions and summary to under 400 words.
+- Limit instructions and summary to under 1000 words.
 
 Friendly and clear tone, but instructions must stay strictly formatted for parsing.
 `

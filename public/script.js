@@ -92,21 +92,19 @@ function parsePlacementInstructions(instructionsText) {
   const lines = instructionsText.split('\n');
   for (let line of lines) {
     line = line.trim();
-    if (line.length === 0) continue; // Skip blank lines
+    if (line.length === 0) continue;
 
-    // Example expected line:
-    // Step 1: Place 2x4 red brick at (0,0,0)
-
-    const match = line.match(/place\s+(\d+x\d+)\s+(\w+)\s+\w+\s+at\s+\((\d+),\s*(\d+),\s*(\d+)\)/i);
+    const match = line.match(/place\s+(\d+x\d+)\s+(\w+)\s+\w+\s+at\s+\((\d+),\s*(\d+),\s*(\d+)\),\s*facing\s+(\w+)/i);
 
     if (match) {
-      const size = match[1];           // 2x4
-      const color = match[2].toLowerCase();  // red
-      const x = parseInt(match[3], 10); // x position
-      const y = parseInt(match[4], 10); // y position
-      const z = parseInt(match[5], 10); // z layer
+      const size = match[1];
+      const color = match[2].toLowerCase();
+      const x = parseInt(match[3], 10);
+      const y = parseInt(match[4], 10);
+      const z = parseInt(match[5], 10);
+      const orientation = match[6].toUpperCase(); // NORTH, EAST, SOUTH, WEST
 
-      parts.push({ size, color, x, y, z });
+      parts.push({ size, color, x, y, z, orientation });
     } else {
       console.warn('Could not parse instruction line:', line);
     }
