@@ -18,7 +18,7 @@
     <form id="lego-form" class="space-y-6">
       <div>
         <label for="parts" class="block text-sm font-medium text-gray-700 mb-1">Your LEGO Parts List</label>
-        <textarea id="parts" name="parts" rows="6" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-200" placeholder="Example:&#10;2x 2x4 brick (red)&#10;1x 1x2 plate (yellow)&#10;3x 1x1 round tile (blue)">2x 2x4 brick (red)&#10;1x 1x2 plate (yellow)&#10;3x 1x1 round tile (blue)</textarea>
+        <textarea id="parts" name="parts" rows="6" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-200" placeholder="Example:&#10;2x 2x4 brick (red)&#10;1x 1x2 plate (yellow)&#10;3x 1x1 round tile (blue)">12x 2x4 brick (red)&#10;14x 2x2 brick (green)&#10;9x 3x4 plate (black)&#10;6x 1x2 plate (yellow)&#10;7x 1x1 round tile (blue)&#10;</textarea>
       </div>
 
       <div>
@@ -53,6 +53,19 @@
         <h2 class="text-2xl font-semibold mb-4">🛠️ Your Build Ideas</h2>
         <div id="build-result" class="text-gray-800 space-y-4">
           <!-- Build instructions will be inserted here -->
+        </div>
+
+        <div class="flex items-center space-x-4 my-6">
+          <label for="layer-select" class="font-semibold text-gray-700">View Layer:</label>
+          <select id="layer-select" class="p-2 rounded-md border border-gray-300">
+            <option value="all">All Layers</option>
+            <option value="0">Layer 0</option>
+            <option value="1">Layer 1</option>
+            <option value="2">Layer 2</option>
+            <option value="3">Layer 3</option>
+            <option value="4">Layer 4</option>
+            <option value="5">Layer 5</option>
+          </select>
         </div>
       
         <!-- 2D Grid Canvas -->
