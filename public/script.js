@@ -20,9 +20,9 @@ document.getElementById('lego-form').addEventListener('submit', async function (
     });
 
     if (!response.ok) throw new Error('Failed to generate build.');
-
     const data = await response.json();
     console.log('Full OpenAI response:', data.result);
+
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('build-result').innerHTML = data.result.replace(/\n/g, '<br/>');
     document.getElementById('output').classList.remove('hidden');
@@ -70,14 +70,14 @@ document.getElementById('lego-form').addEventListener('submit', async function (
       return parts;
     }    
     
-    const partsArray = extractPartsSummary(data.result);
-    console.log('Extracted parts array:', partsArray);
-
+    const partsArray = parsePlacementInstructions(data.result);
+    console.log('Parsed parts array:', partsArray);
+    
     if (partsArray.length > 0) {
-      await renderGrid(partsArray);
+      await renderGridFromPlacement(partsArray);
     } else {
-      console.warn('No parts found to render.');
-    }
+      console.warn('No parts parsed.');
+    }    
 
   } catch (error) {
     console.error(error);
@@ -85,6 +85,35 @@ document.getElementById('lego-form').addEventListener('submit', async function (
     document.getElementById('loading').classList.add('hidden');
   }
 });
+
+function parsePlacementInstructions(instructionsText) {
+  const parts = [];
+
+  const lines = instructionsText.split('\n');
+  for (let line of lines) {
+    line = line.trim();
+    if (line.length === 0) continue; // Skip blank lines
+
+    // Example expected line:
+    // Step 1: Place 2x4 red brick at (0,0,0)
+
+    const match = line.match(/place\s+(\d+x\d+)\s+(\w+)\s+\w+\s+at\s+\((\d+),\s*(\d+),\s*(\d+)\)/i);
+
+    if (match) {
+      const size = match[1];           // 2x4
+      const color = match[2].toLowerCase();  // red
+      const x = parseInt(match[3], 10); // x position
+      const y = parseInt(match[4], 10); // y position
+      const z = parseInt(match[5], 10); // z layer
+
+      parts.push({ size, color, x, y, z });
+    } else {
+      console.warn('Could not parse instruction line:', line);
+    }
+  }
+
+  return parts;
+};
 
 async function renderGrid(parts) {
   function colorNameToTailwind(colorName) {
@@ -101,7 +130,7 @@ async function renderGrid(parts) {
       brown: 'bg-yellow-800'
       // Add more mappings if needed
     };
-  
+    
     return colorMap[colorName] || 'bg-gray-400'; // Default fallback
   }
   
@@ -122,6 +151,7 @@ async function renderGrid(parts) {
   for (let part of parts) {
     const brick = document.createElement('div');
     const colorClass = colorNameToTailwind(part.color);
+    console.log('colors in the color map', colorClass);
 
     const [studWidth, studHeight] = part.size.split('x').map(Number);
     const brickPixelWidth = studWidth * 30;
@@ -152,7 +182,66 @@ async function renderGrid(parts) {
     currentLayer.appendChild(brick);
     currentRowWidth += studWidth;
   }
-}
+};
+
+async function renderGridFromPlacement(parts) {
+  const gridCanvas = document.getElementById('grid-canvas');
+  gridCanvas.innerHTML = "";
+
+  const gridSize = 10; // 10x10 studs
+  const studSizePx = 30; // Each stud = 30x30 pixels
+
+  // Set up the main grid container
+  gridCanvas.style.display = 'grid';
+  gridCanvas.style.gridTemplateColumns = `repeat(${gridSize}, ${studSizePx}px)`;
+  gridCanvas.style.gridTemplateRows = `repeat(${gridSize}, ${studSizePx}px)`;
+  gridCanvas.style.gap = '2px';
+  gridCanvas.className = 'bg-gray-100 p-2 rounded-lg';
+
+  // Build a map by (x,y) → list of bricks sorted by z
+  const gridMap = {};
+
+  for (let part of parts) {
+    const { size, color, x, y, z } = part;
+
+    const key = `${x},${y}`;
+
+    if (!gridMap[key]) {
+      gridMap[key] = [];
+    }
+
+    gridMap[key].push({ size, color, z });
+  }
+
+  // Render bricks
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'relative w-full h-full flex items-center justify-center';
+
+      const key = `${col},${row}`;
+      if (gridMap[key]) {
+        // Sort by height (z)
+        gridMap[key].sort((a, b) => a.z - b.z);
+
+        // Render the top-most brick (highest z)
+        const topBrick = gridMap[key][gridMap[key].length - 1];
+
+        const brick = document.createElement('div');
+        brick.className = `${colorNameToTailwind(topBrick.color)} border border-gray-400 rounded-md w-4 h-4`;
+        brick.title = `${topBrick.size} at z=${topBrick.z}`;
+
+        // Optional: adjust opacity based on z height
+        brick.style.opacity = Math.min(1, 0.5 + topBrick.z * 0.1);
+
+        cell.appendChild(brick);
+      }
+
+      gridCanvas.appendChild(cell);
+    }
+  }
+};
+
 
 
 
