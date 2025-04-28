@@ -46,20 +46,22 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
       }
     }
   }
-
+  
   // If NO studs are supported at all → placement invalid immediately
   if (supportedStuds === 0) {
     return false;
   }
 
   // Then optionally apply the extra stability rules:
-  if (totalStuds <= 2) {
-    return supportedStuds >= 1; // Small parts: 1 stud OK
-  } else if (totalStuds <= 6) {
-    return supportedStuds >= 2; // Medium parts: 2 studs
-  } else {
-    return supportedStuds >= 3; // Big parts: 3 studs
-  }
+  // if (totalStuds <= 2) {
+  //   return supportedStuds >= 1; // Small parts: 1 stud OK
+  // } else if (totalStuds <= 6) {
+  //   return supportedStuds >= 2; // Medium parts: 2 studs
+  // } else {
+  //   return supportedStuds >= 3; // Big parts: 3 studs
+  // }
+
+  return supportedStuds >= 1;
 }
 
 // Mark brick studs as occupied in the grid
