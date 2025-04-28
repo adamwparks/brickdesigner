@@ -88,6 +88,28 @@ document.getElementById('lego-form').addEventListener('submit', async function (
   }
 });
 
+function colorNameToTailwind(colorName) {
+  const colorMap = {
+    red: 'bg-red-500',
+    yellow: 'bg-yellow-400',
+    blue: 'bg-blue-400',
+    green: 'bg-green-400',
+    black: 'bg-black',
+    white: 'bg-white',
+    gray: 'bg-gray-400',
+    purple: 'bg-purple-400',
+    orange: 'bg-orange-400',
+    brown: 'bg-yellow-800',
+    pink: 'bg-pink-400',
+    tan: 'bg-yellow-200',
+    lightgray: 'bg-gray-300',
+    darkgray: 'bg-gray-700',
+    // Add more if needed!
+  };
+
+  return colorMap[colorName.toLowerCase()] || 'bg-gray-400'; // fallback to gray
+}
+
 function parsePlacementInstructions(instructionsText) {
   const parts = [];
 
