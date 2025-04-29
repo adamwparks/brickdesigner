@@ -74,9 +74,6 @@ function parseBuildSteps(text) {
     if (line.toLowerCase().includes('parts used summary')) {
       inPartsSection = true;
       continue;
-    } else if (line.toLowerCase().startsWith('step')) {
-      inBuildStepsSection = true;
-      continue;
     }
 
     if (!inPartsSection) {
@@ -91,14 +88,13 @@ function parseBuildSteps(text) {
           z: parseInt(z, 10),
           orientation: orientation.toUpperCase()
         });
+        console.log(line);
+        buildStepsList.push(line.trim());
       } else if (line.trim() && !line.startsWith('Step')) {
         // Capture first non-step non-empty line as description
         if (!description) {
           description = line.trim();
         }
-      } else if (inBuildStepsSection) {
-        console.log(line);
-        buildStepsList.push(line.trim());
       }
     } else {
       if (line.trim().startsWith('-')) {
