@@ -76,7 +76,7 @@ function parseBuildSteps(text) {
       continue;
     }
 
-    if (line.startsWith('Step')) {
+    if (line.toLowerCase().includes('generated build steps')) {
       inBuildStepsSection = true;
       continue;
     }
