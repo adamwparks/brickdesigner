@@ -8,6 +8,7 @@ let rejectedBricks = [];
 
 // Generate new build from GPT
 async function generateBuild() {
+  showSpinner();
   try {
     const response = await fetch('/api/generate', {
       method: 'POST',
@@ -18,9 +19,12 @@ async function generateBuild() {
     const data = await response.json();
 
     buildSteps = data.result; // Save the original build text
+    console.log('Generated Build Steps:', buildSteps);
     await parseAndRenderBuild(buildSteps); // Parse and render
   } catch (error) {
     console.error('Error generating build:', error);
+  } finally {
+    hideSpinner();
   }
 }
 
@@ -30,6 +34,8 @@ async function handleRefine() {
     console.error('Cannot refine: missing buildSteps or rejected bricks.');
     return;
   }
+
+  showSpinner();
 
   try {
     const response = await fetch('/api/refine', {
@@ -48,6 +54,8 @@ async function handleRefine() {
     }
   } catch (error) {
     console.error('Error refining build:', error);
+  } finally {
+    hideSpinner();
   }
 }
 
@@ -77,11 +85,13 @@ function parseBuildSteps(text) {
 // Parse and Render the build
 async function parseAndRenderBuild(text) {
   const parts = parseBuildSteps(text);
+  console.log('Parsed Parts:', parts);
   await renderGridFromPlacement(parts);
 }
 
 // Render grid based on parsed parts
 async function renderGridFromPlacement(parts) {
+  console.log('Rendering', parts.length, 'parts...');
   const gridCanvas = document.getElementById('grid-canvas');
   gridCanvas.innerHTML = "";
 
@@ -161,12 +171,19 @@ document.getElementById('refine-button').addEventListener('click', async (e) => 
   await handleRefine();
 });
 
-// === HELPERS (assume you already have these somewhere) ===
-// - initializeGrid()
-// - markBrickOnGrid()
-// - isPlacementSupported()
-// - renderVerticalStudViewer()
+function showSpinner() {
+  const spinner = document.getElementById('loading-spinner');
+  if (spinner) {
+    spinner.style.display = 'flex';
+  }
+}
 
+function hideSpinner() {
+  const spinner = document.getElementById('loading-spinner');
+  if (spinner) {
+    spinner.style.display = 'none';
+  }
+}
 
 function colorNameToTailwind(colorName) {
   const colorMap = {
