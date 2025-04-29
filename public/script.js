@@ -1,4 +1,5 @@
 import { initializeGrid, isPlacementSupported, markBrickOnGrid } from './gridOccupancy.js';
+let buildSteps = "";
 
 document.getElementById('lego-form').addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -23,6 +24,7 @@ document.getElementById('lego-form').addEventListener('submit', async function (
 
     if (!response.ok) throw new Error('Failed to generate build.');
     const data = await response.json();
+    buildSteps = data.result;
     console.log('Full OpenAI response:', data.result);
 
     document.getElementById('loading').classList.add('hidden');
@@ -147,6 +149,7 @@ async function renderGridFromPlacement(parts) {
   const studSizePx = 30;
 
   const occupancyGrid = initializeGrid(); // New: Create fresh empty grid
+  const rejectedBricks = [];
 
   // Set up the visual grid
   gridCanvas.style.display = 'grid';
@@ -170,18 +173,28 @@ async function renderGridFromPlacement(parts) {
     // Check if the brick placement is supported
     if (isPlacementSupported(x, y, z, studWidth, studLength, orientation, occupancyGrid)) {
       const key = `${x},${y}`;
-
+    
       if (!gridMap[key]) {
         gridMap[key] = [];
       }
-
-      // After successfully placing it, mark the grid occupied
-      markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
+    
       gridMap[key].push({ size, color, z, orientation });
-
+    
+      markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
     } else {
       console.warn(`Unsupported placement for brick at (${x},${y},${z}). Skipping.`);
-    }
+      
+      rejectedBricks.push({
+        step: parts.indexOf(part) + 1, // assuming parts are in order
+        size: part.size,
+        color: part.color,
+        x: part.x,
+        y: part.y,
+        z: part.z,
+        orientation: part.orientation,
+        reason: 'unsupported (floating or insufficient studs)',
+      });
+    }    
   }
 
   // Now visually render all bricks
@@ -234,6 +247,21 @@ async function renderGridFromPlacement(parts) {
       renderVerticalStudViewer(occupancyGrid);
     }
   }
+  if (rejectedBricks.length > 0) {
+    console.log('Rejected bricks detected:', rejectedBricks);
+  
+    // Optionally show a "Refine Build" button
+    const refineButton = document.getElementById('refine-button');
+    if (refineButton) {
+      refineButton.style.display = 'block';
+      refineButton.onclick = () => handleRefine(buildSteps, rejectedBricks);
+    }
+  } else {
+    const refineButton = document.getElementById('refine-button');
+    if (refineButton) {
+      refineButton.style.display = 'none';
+    }
+  }
 };
 
 function renderVerticalStudViewer(occupancyGrid) {
@@ -271,6 +299,28 @@ function renderVerticalStudViewer(occupancyGrid) {
         container.appendChild(stud);
       }
     }
+  }
+};
+
+async function handleRefine(buildSteps, rejectedBricks) {
+  try {
+    const response = await fetch('/api/refine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ buildSteps, rejectedBricks }),
+    });
+
+    const data = await response.json();
+
+    if (data.result) {
+      console.log('Received refined build:', data.result);
+      // Now you can rerun parsing and rendering with the new instructions
+      parseAndRenderBuild(data.result);
+    } else {
+      console.error('No result in refine response.');
+    }
+  } catch (error) {
+    console.error('Error refining build:', error);
   }
 };
 

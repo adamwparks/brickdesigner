@@ -52,15 +52,6 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
     return false;
   }
 
-  // Then optionally apply the extra stability rules:
-  // if (totalStuds <= 2) {
-  //   return supportedStuds >= 1; // Small parts: 1 stud OK
-  // } else if (totalStuds <= 6) {
-  //   return supportedStuds >= 2; // Medium parts: 2 studs
-  // } else {
-  //   return supportedStuds >= 3; // Big parts: 3 studs
-  // }
-
   return supportedStuds >= 1;
 }
 

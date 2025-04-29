@@ -1,94 +1,61 @@
 import { OpenAI } from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY, // Use your Vercel environment variable
 });
 
-// Vercel expects this exact signature for API routes:
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
-
-  const { partsList, theme } = req.body;
-
-  if (!partsList) {
-    return res.status(400).json({ error: 'Parts list is required' });
-  }
-
-  const userPrompt = `
-Parts List:
-${partsList}
-
-Theme: ${theme || "No specific theme"}
-
-Please suggest 1-3 LEGO build ideas based on the above, and provide step-by-step assembly instructions for one build.
-`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4.1', // or 'gpt-4-turbo'
-      messages: [
-        {
-          role: "system",
-          content: `
+    const prompt = `
 You are a professional LEGO Master Builder assistant.
 
-Your job is to design realistic LEGO builds following strict physical construction rules.
+Generate a step-by-step LEGO build with up to 15 bricks. Each brick must follow proper physical support rules.
 
-Important building rules:
-- You are building on a 10x10 stud grid.
-- You can build up to 10 levels high (e.g., the z coordinate has to be less than or equal to 10).
-- Each brick must specify placement coordinates: (x, y, z).
-- Each brick must specify orientation (Facing North, East, South, or West).
-- Assume standard brick dimensions (e.g., 2x4 brick = 2 studs wide, 4 studs long).
+Rules:
+- Bricks are placed on a 10x10 grid (x: 0-9, y: 0-9).
+- Each brick must have a coordinate (x,y,z) and a facing orientation (North, East, South, or West).
+- Bricks must fully fit inside the 10x10 grid — no overhanging.
+- Brick types allowed: 2x4, 1x2, 4x4, 2x6, 1x4 only.
+- At z=0 (ground level), placement is always supported.
+- At z>0, you must ensure at least ONE stud underneath the brick footprint is supported by a brick or plate directly underneath.
+- Larger bricks (over 4 studs long) should preferably have 2+ supporting studs if possible.
+- Do NOT place floating bricks.
+- Only use standard top-down stud stacking — no side studs.
 
-Structural constraints:
-- Before placing any brick, ensure that at least one stud underneath the brick footprint is fully supported:
-  - A supported stud means there is a brick or plate directly underneath at (x, y, z-1).
-  - Prefer more than one supported stud for longer bricks (over 3 studs long).
-- It is **not required** that the entire brick footprint be supported — only enough to hold the brick securely.
-- If no studs under the footprint are supported, skip that placement.
+Output format:
+Step 1: Place {size} {color} brick at (x,y,z), facing {direction}
+Step 2: Place {size} {color} brick at (x,y,z), facing {direction}
+...
+Parts Used Summary:
+- {size} {color} brick x {quantity}
+- ...
 
-- Always connect bricks by top studs only.
-- No floating bricks.
-- No side attachments unless special SNOT bricks are provided (assume standard bricks).
+No markdown, no bullet points — output only clean plain text instructions.
 
-Grid and boundary rules:
-- All bricks must fully fit inside the 10x10 grid — no overhangs allowed.
-- Orientation affects the direction the longer side points (East = positive X, North = negative Y).
+Prioritize buildability and stability over creativity.
+`;
 
-Instruction format:
-- Step #: Place {size} {color} {brick_type} at ({x},{y},{z}), facing {direction}
-
-Example:
-Step 1: Place 2x4 red brick at (0,0,0), facing East
-Step 2: Place 1x2 yellow plate at (2,0,1), facing North
-
-After all steps, output a "Parts Used Summary:" listing each part used, quantity, size, color, and type.
-
-Constraints:
-- Prioritize stable builds with strong stud connections.
-- If placement is not possible within rules, skip the brick.
-- Stack vertically if possible.
-- Limit total output under 400 words.
-- Output only plain text — no markdown, bullet points, or commentary.
-
-Friendly tone, but instructions must stay strictly formatted for parsing.
-`
-        },
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o', // (or 'gpt-4', or whichever model you are using)
+      messages: [
         {
-          role: "user",
-          content: userPrompt
-        }
+          role: 'system',
+          content: prompt,
+        },
       ],
-      temperature: 0.7
+      temperature: 0.6,
+      max_tokens: 800,
     });
 
-    res.status(200).json({ result: completion.choices[0].message.content });
+    const generatedText = completion.choices[0]?.message?.content;
 
+    return res.status(200).json({ result: generatedText });
   } catch (error) {
     console.error('OpenAI API error:', error);
-    res.status(500).json({ error: 'Failed to generate build instructions' });
+    return res.status(500).json({ error: 'Failed to generate build.' });
   }
 }
