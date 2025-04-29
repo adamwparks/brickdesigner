@@ -97,9 +97,9 @@ async function renderGridFromPlacement(parts) {
 
   const gridSize = 10;
   const studSizePx = 30;
-  rejectedBricks = []; // Reset rejectedBricks before each new render
-
+  rejectedBricks = [];
   const occupancyGrid = initializeGrid();
+  const topBricks = [];
 
   gridCanvas.style.display = 'grid';
   gridCanvas.style.gridTemplateColumns = `repeat(${gridSize}, ${studSizePx}px)`;
@@ -107,22 +107,47 @@ async function renderGridFromPlacement(parts) {
   gridCanvas.style.gap = '2px';
   gridCanvas.className = 'bg-gray-100 p-2 rounded-lg';
 
-  const gridMap = {};
+  // Track the topmost brick at each (x, y)
+  const topStudsMap = Array.from({ length: gridSize }, () =>
+    Array.from({ length: gridSize }, () => null)
+  );
 
   for (const part of parts) {
     const { size, color, x, y, z, orientation } = part;
     const [studWidth, studLength] = size.split('x').map(Number);
 
     if (isPlacementSupported(x, y, z, studWidth, studLength, orientation, occupancyGrid)) {
-      const key = `${x},${y}`;
-
-      if (!gridMap[key]) {
-        gridMap[key] = [];
-      }
-
-      gridMap[key].push({ size, color, z, orientation });
-
       markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
+      topBricks.push({ x, y, z, size, color, orientation });
+      // Fill in topStudsMap for the footprint
+      for (let dx = 0; dx < studWidth; dx++) {
+        for (let dy = 0; dy < studLength; dy++) {
+          let gx = x, gy = y;
+
+          // Adjust for orientation
+          if (orientation === 'NORTH') {
+            gx = x + dx;
+            gy = y - dy;
+          } else if (orientation === 'EAST') {
+            gx = x + dy;
+            gy = y + dx;
+          } else if (orientation === 'SOUTH') {
+            gx = x - dx;
+            gy = y + dy;
+          } else if (orientation === 'WEST') {
+            gx = x - dy;
+            gy = y - dx;
+          }
+
+          if (
+            gx >= 0 && gx < gridSize &&
+            gy >= 0 && gy < gridSize &&
+            (!topStudsMap[gx][gy] || topStudsMap[gx][gy].z <= z)
+          ) {
+            topStudsMap[gx][gy] = { color, z, size, orientation };
+          }
+        }
+      }
     } else {
       console.warn(`Unsupported placement for brick at (${x},${y},${z}). Skipping.`);
 
@@ -139,47 +164,61 @@ async function renderGridFromPlacement(parts) {
     }
   }
 
-  // ✅ Final placement: loop through grid, and add bricks if they exist
+  // Render the full grid with visible studs
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
       const cell = document.createElement('div');
       cell.className = 'relative w-full h-full flex items-center justify-center bg-white border border-gray-200';
 
-      const key = `${col},${row}`;
-      if (gridMap[key]) {
-        gridMap[key].sort((a, b) => a.z - b.z); // Top-most brick wins
-
-        const topBrick = gridMap[key][gridMap[key].length - 1];
-
-        const brick = document.createElement('div');
-        brick.className = `${colorNameToTailwind(topBrick.color)} border border-gray-400 rounded-md w-4 h-4 transition-all duration-500 ease-out`;
-        brick.title = `${topBrick.size} at z=${topBrick.z}, facing ${topBrick.orientation}`;
-
-        brick.style.transform = 'translateY(-100px)';
-        brick.style.opacity = '0';
-        void brick.offsetWidth; // Force reflow for animation
-
-        setTimeout(() => {
-          brick.style.transform = 'translateY(0)';
-          brick.style.opacity = '1';
-        }, Math.random() * 300);
-
-        cell.appendChild(brick);
+      const stud = topStudsMap[col][row];
+      if (stud) {
+        const dot = document.createElement('div');
+        dot.className = `${colorNameToTailwind(stud.color)} w-4 h-4 rounded-full border border-gray-500 transition-all duration-300`;
+        dot.title = `${stud.size} brick facing ${stud.orientation}, z=${stud.z}`;
+        cell.appendChild(dot);
       }
 
       gridCanvas.appendChild(cell);
     }
   }
 
-  renderVerticalStudViewer(occupancyGrid); // Optional 3D vertical viewer
+  // Render full brick outlines (topmost ones only)
+  for (const brick of topBricks) {
+    const [studWidth, studLength] = brick.size.split('x').map(Number);
+    let pixelWidth = studWidth * studSizePx;
+    let pixelHeight = studLength * studSizePx;
+    let gx = brick.x;
+    let gy = brick.y;
+
+    // Adjust for orientation
+    if (brick.orientation === 'NORTH' || brick.orientation === 'SOUTH') {
+      pixelWidth = studWidth * studSizePx;
+      pixelHeight = studLength * studSizePx;
+    } else if (brick.orientation === 'EAST' || brick.orientation === 'WEST') {
+      // flip width and height
+      [pixelWidth, pixelHeight] = [pixelHeight, pixelWidth];
+    }
+
+    const outline = document.createElement('div');
+    outline.style.position = 'absolute';
+    outline.style.left = `${gx * studSizePx}px`;
+    outline.style.top = `${gy * studSizePx}px`;
+    outline.style.width = `${pixelWidth}px`;
+    outline.style.height = `${pixelHeight}px`;
+    outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
+    outline.style.borderRadius = '6px';
+    outline.style.pointerEvents = 'none';
+    outline.style.boxSizing = 'border-box';
+
+    gridCanvas.appendChild(outline);
+  }
+
+
+  renderVerticalStudViewer(occupancyGrid); // Optional 3D viewer
 
   const refineButton = document.getElementById('refine-button');
   if (refineButton) {
-    if (rejectedBricks.length > 0) {
-      refineButton.style.display = 'block';
-    } else {
-      refineButton.style.display = 'none';
-    }
+    refineButton.style.display = rejectedBricks.length > 0 ? 'block' : 'none';
   }
 };
 
