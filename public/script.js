@@ -63,30 +63,50 @@ async function handleRefine() {
 function parseBuildSteps(text) {
   const lines = text.split('\n');
   const parts = [];
+  const partsList = [];
+  let description = "";
+
+  let inPartsSection = false;
 
   for (const line of lines) {
-    const match = line.match(/Step \d+: Place (\d+x\d+) (\w+) brick at \((\d+),(\d+),(\d+)\), facing (\w+)/i);
-    if (match) {
-      const [, size, color, x, y, z, orientation] = match;
-      parts.push({
-        size,
-        color,
-        x: parseInt(x, 10),
-        y: parseInt(y, 10),
-        z: parseInt(z, 10),
-        orientation: orientation.toUpperCase()
-      });
+    if (line.toLowerCase().includes('parts used summary')) {
+      inPartsSection = true;
+      continue;
+    }
+
+    if (!inPartsSection) {
+      const match = line.match(/Step \d+: Place (\d+x\d+) (\w+) brick at \((\d+),(\d+),(\d+)\), facing (\w+)/i);
+      if (match) {
+        const [, size, color, x, y, z, orientation] = match;
+        parts.push({
+          size,
+          color,
+          x: parseInt(x, 10),
+          y: parseInt(y, 10),
+          z: parseInt(z, 10),
+          orientation: orientation.toUpperCase()
+        });
+      } else if (line.trim() && !line.startsWith('Step')) {
+        // Capture first non-step non-empty line as description
+        if (!description) {
+          description = line.trim();
+        }
+      }
+    } else {
+      if (line.trim().startsWith('-')) {
+        partsList.push(line.trim().slice(1).trim());
+      }
     }
   }
 
-  return parts;
-}
+  return { parts, partsList, description };
+};
 
 // Parse and Render the build
 async function parseAndRenderBuild(text) {
-  const parts = parseBuildSteps(text);
-  console.log('Parsed Parts:', parts);
+  const { parts, partsList, description } = parseBuildSteps(text);
   await renderGridFromPlacement(parts);
+  renderBuildSummary(partsList, description);
 }
 
 // Render grid based on parsed parts
@@ -218,6 +238,24 @@ async function renderGridFromPlacement(parts) {
   const refineButton = document.getElementById('refine-button');
   if (refineButton) {
     refineButton.style.display = rejectedBricks.length > 0 ? 'block' : 'none';
+  }
+};
+
+function renderBuildSummary(partsList, description) {
+  const partsListContainer = document.getElementById('parts-list');
+  const descriptionContainer = document.getElementById('build-description');
+
+  if (descriptionContainer) {
+    descriptionContainer.textContent = description || "No description available.";
+  }
+
+  if (partsListContainer) {
+    partsListContainer.innerHTML = "";
+    for (const item of partsList) {
+      const li = document.createElement('li');
+      li.textContent = item;
+      partsListContainer.appendChild(li);
+    }
   }
 };
 
