@@ -139,10 +139,34 @@ async function renderGridFromPlacement(parts) {
     }
   }
 
+  // ✅ Final placement: loop through grid, and add bricks if they exist
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
       const cell = document.createElement('div');
       cell.className = 'relative w-full h-full flex items-center justify-center bg-white border border-gray-200';
+
+      const key = `${col},${row}`;
+      if (gridMap[key]) {
+        gridMap[key].sort((a, b) => a.z - b.z); // Top-most brick wins
+
+        const topBrick = gridMap[key][gridMap[key].length - 1];
+
+        const brick = document.createElement('div');
+        brick.className = `${colorNameToTailwind(topBrick.color)} border border-gray-400 rounded-md w-4 h-4 transition-all duration-500 ease-out`;
+        brick.title = `${topBrick.size} at z=${topBrick.z}, facing ${topBrick.orientation}`;
+
+        brick.style.transform = 'translateY(-100px)';
+        brick.style.opacity = '0';
+        void brick.offsetWidth; // Force reflow for animation
+
+        setTimeout(() => {
+          brick.style.transform = 'translateY(0)';
+          brick.style.opacity = '1';
+        }, Math.random() * 300);
+
+        cell.appendChild(brick);
+      }
+
       gridCanvas.appendChild(cell);
     }
   }
@@ -157,7 +181,7 @@ async function renderGridFromPlacement(parts) {
       refineButton.style.display = 'none';
     }
   }
-}
+};
 
 // === EVENT BINDINGS ===
 
@@ -186,6 +210,7 @@ function hideSpinner() {
 }
 
 function colorNameToTailwind(colorName) {
+  console.log('Looking up color:', colorName);
   const colorMap = {
     red: 'bg-red-500',
     yellow: 'bg-yellow-400',
@@ -204,7 +229,13 @@ function colorNameToTailwind(colorName) {
     // Add more if needed!
   };
 
-  return colorMap[colorName.toLowerCase()] || 'bg-gray-400'; // fallback to gray
+  const result = map[colorName.toLowerCase()];
+  if (!result) {
+    console.warn('Unknown color:', colorName);
+    return 'bg-gray-300'; // fallback
+  }
+
+  return result;
 }
 
 // function parsePlacementInstructions(instructionsText) {
