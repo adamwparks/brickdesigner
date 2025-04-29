@@ -79,7 +79,8 @@ document.getElementById('lego-form').addEventListener('submit', async function (
       await renderGridFromPlacement(partsArray);
     } else {
       console.warn('No parts parsed.');
-    }    
+    }
+    renderVerticalStudViewer(occupancyGrid);
 
   } catch (error) {
     console.error(error);
@@ -138,6 +139,7 @@ function parsePlacementInstructions(instructionsText) {
 };
 
 async function renderGridFromPlacement(parts) {
+  const debugMode = document.getElementById('debug-toggle').checked;
   const gridCanvas = document.getElementById('grid-canvas');
   gridCanvas.innerHTML = "";
 
@@ -187,37 +189,88 @@ async function renderGridFromPlacement(parts) {
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
       const cell = document.createElement('div');
-      cell.className = 'relative w-full h-full flex items-center justify-center';
-
+      cell.className = 'relative w-full h-full flex items-center justify-center bg-white border border-gray-200';
+      
       const key = `${col},${row}`;
+      
+      // Draw the brick visually if a brick exists at this cell
       if (gridMap[key]) {
-        // Pick the top-most brick for this stud
         gridMap[key].sort((a, b) => a.z - b.z);
         const topBrick = gridMap[key][gridMap[key].length - 1];
-
+      
         const brick = document.createElement('div');
         brick.className = `${colorNameToTailwind(topBrick.color)} border border-gray-400 rounded-md w-4 h-4 transition-all duration-500 ease-out`;
         brick.title = `${topBrick.size} at z=${topBrick.z}, facing ${topBrick.orientation}`;
-        
-        // Start above the canvas
+      
         brick.style.transform = 'translateY(-100px)';
         brick.style.opacity = '0';
-        
-        // Force reflow (important to trigger transition)
+      
         void brick.offsetWidth;
-        
-        // Animate down to position
+      
         setTimeout(() => {
           brick.style.transform = 'translateY(0)';
           brick.style.opacity = '1';
-        }, Math.random() * 300); // Slight random delay for natural "staggered" drop effect
-
-        brick.style.opacity = Math.min(1, 0.5 + topBrick.z * 0.1); // Optional: lighter for higher levels
-
+        }, Math.random() * 300);
+      
         cell.appendChild(brick);
       }
-
+      
+      // 🧠 NEW: If Debug Mode ON, draw stud occupancy
+      if (debugMode) {
+        const selectedLayerInt = selectedLayer === "all" ? 0 : parseInt(selectedLayer);
+      
+        const occupancy = occupancyGrid[col][row][selectedLayerInt];
+      
+        const debugDot = document.createElement('div');
+        debugDot.className = occupancy ? 'bg-green-500 rounded-full w-2 h-2' : 'bg-red-300 rounded-full w-2 h-2';
+        debugDot.style.position = 'absolute';
+        debugDot.style.bottom = '4px';
+        debugDot.style.right = '4px';
+        debugDot.title = occupancy ? 'Stud occupied' : 'Empty stud';
+      
+        cell.appendChild(debugDot);
+      }
+      
       gridCanvas.appendChild(cell);
+      
+    }
+  }
+};
+
+function renderVerticalStudViewer(occupancyGrid) {
+  const verticalCanvas = document.getElementById('vertical-canvas');
+  verticalCanvas.innerHTML = "";
+
+  const gridSize = 10;
+  const studSizePx = 20; // Each stud 20px × 20px
+  const layerSpacing = 30; // How far up each layer is spaced
+
+  // Container div to center grid
+  const container = document.createElement('div');
+  container.style.position = 'relative';
+  container.style.width = `${gridSize * studSizePx}px`;
+  container.style.height = `${(gridSize * studSizePx) + (10 * layerSpacing)}px`;
+
+  verticalCanvas.appendChild(container);
+
+  for (let z = 0; z < 10; z++) { // For each layer
+    for (let y = 0; y < gridSize; y++) {
+      for (let x = 0; x < gridSize; x++) {
+
+        const occupied = occupancyGrid[x][y][z];
+
+        const stud = document.createElement('div');
+        stud.className = 'absolute rounded-full';
+        stud.style.width = `${studSizePx}px`;
+        stud.style.height = `${studSizePx}px`;
+        stud.style.left = `${x * studSizePx}px`;
+        stud.style.top = `${y * studSizePx - (z * layerSpacing)}px`; // Stagger up for higher z
+        stud.style.backgroundColor = occupied ? `rgba(34,197,94,${0.4 + z * 0.05})` : `rgba(203,213,225,0.2)`;
+        stud.style.border = occupied ? '1px solid #4ade80' : '1px dashed #cbd5e1';
+        stud.title = `(${x},${y},${z}) - ${occupied ? "Occupied" : "Empty"}`;
+
+        container.appendChild(stud);
+      }
     }
   }
 };
