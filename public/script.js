@@ -77,7 +77,6 @@ document.getElementById('lego-form').addEventListener('submit', async function (
     
     if (partsArray.length > 0) {
       await renderGridFromPlacement(partsArray);
-      renderVerticalStudViewer(occupancyGrid);
     } else {
       console.warn('No parts parsed.');
     }
@@ -232,7 +231,7 @@ async function renderGridFromPlacement(parts) {
       }
       
       gridCanvas.appendChild(cell);
-      
+      renderVerticalStudViewer(occupancyGrid);
     }
   }
 };
