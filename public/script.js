@@ -74,9 +74,7 @@ function parseBuildSteps(text) {
     if (line.toLowerCase().includes('parts used summary')) {
       inPartsSection = true;
       continue;
-    }
-
-    if (line.toLowerCase().includes('generated build steps')) {
+    } else if (line.toLowerCase().startsWith('step')) {
       inBuildStepsSection = true;
       continue;
     }
