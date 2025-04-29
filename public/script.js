@@ -64,7 +64,7 @@ function parseBuildSteps(text) {
   const lines = text.split('\n');
   const parts = [];
   const partsList = [];
-  const buildSteps = [];
+  const buildStepsList = [];
   let description = "";
 
   let inPartsSection = false;
@@ -94,7 +94,7 @@ function parseBuildSteps(text) {
         }
       }
     } else if (line.trim() && line.startsWith('Step')) {
-      buildSteps.push(line.trim());
+      buildStepsList.push(line.trim());
     } else {
       if (line.trim().startsWith('-')) {
         partsList.push(line.trim().slice(1).trim());
@@ -102,14 +102,14 @@ function parseBuildSteps(text) {
     }
   }
 
-  return { parts, partsList, description, buildSteps };
+  return { parts, partsList, description, buildStepsList };
 };
 
 // Parse and Render the build
 async function parseAndRenderBuild(text) {
-  const { parts, partsList, description, buildSteps } = parseBuildSteps(text);
+  const { parts, partsList, description, buildStepsList } = parseBuildSteps(text);
   await renderGridFromPlacement(parts);
-  renderBuildSummary(partsList, description, buildSteps);
+  renderBuildSummary(partsList, description, buildStepsList);
 }
 
 // Render grid based on parsed parts
@@ -244,7 +244,7 @@ async function renderGridFromPlacement(parts) {
   }
 };
 
-function renderBuildSummary(partsList, description, buildSteps) {
+function renderBuildSummary(partsList, description, buildStepsList) {
   const partsListContainer = document.getElementById('parts-list');
   const descriptionContainer = document.getElementById('build-description');
   const buildStepsContainer = document.getElementById('build-steps');
@@ -254,7 +254,8 @@ function renderBuildSummary(partsList, description, buildSteps) {
   }
 
   if (buildStepsContainer) {
-    buildStepsContainer.textContent = buildSteps || "No build steps available.";
+    console.log('bsl = ', buildStepsList);
+    buildStepsContainer.textContent = buildStepsList || "No build steps available.";
   }
 
   if (partsListContainer) {
