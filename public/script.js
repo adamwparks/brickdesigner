@@ -389,49 +389,49 @@ function renderVerticalStudViewer(occupancyGrid) {
 //   }
 // });
 
-let selectedFeedback = '';
+// let selectedFeedback = '';
 
-document.querySelectorAll('.feedback-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    selectedFeedback = e.target.getAttribute('data-feedback');
-    document.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('opacity-50'));
-    e.target.classList.add('opacity-50'); // visually mark selection
-  });
-});
+// document.querySelectorAll('.feedback-btn').forEach(btn => {
+//   btn.addEventListener('click', (e) => {
+//     selectedFeedback = e.target.getAttribute('data-feedback');
+//     document.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('opacity-50'));
+//     e.target.classList.add('opacity-50'); // visually mark selection
+//   });
+// });
 
-document.getElementById('submit-feedback').addEventListener('click', async () => {
-  const comment = document.getElementById('feedback-comment').value.trim();
+// document.getElementById('submit-feedback').addEventListener('click', async () => {
+//   const comment = document.getElementById('feedback-comment').value.trim();
 
-  if (!selectedFeedback && !comment) {
-    alert('Please select a feedback type or leave a comment.');
-    return;
-  }
+//   if (!selectedFeedback && !comment) {
+//     alert('Please select a feedback type or leave a comment.');
+//     return;
+//   }
 
-  const feedbackData = {
-    feedbackType: selectedFeedback,
-    comment,
-    buildInstructions: currentBuildInstructions
-  };
+//   const feedbackData = {
+//     feedbackType: selectedFeedback,
+//     comment,
+//     buildInstructions: currentBuildInstructions
+//   };
 
-  try {
-    const response = await fetch('/api/submitFeedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(feedbackData)
-    });
+//   try {
+//     const response = await fetch('/api/submitFeedback', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(feedbackData)
+//     });
 
-    if (!response.ok) {
-      throw new Error('Failed to submit feedback');
-    }
+//     if (!response.ok) {
+//       throw new Error('Failed to submit feedback');
+//     }
 
-    alert('Thanks for your feedback!');
-    selectedFeedback = '';
-    document.getElementById('feedback-comment').value = '';
-  } catch (err) {
-    console.error(err);
-    alert('Error submitting feedback.');
-  }
-});
+//     alert('Thanks for your feedback!');
+//     selectedFeedback = '';
+//     document.getElementById('feedback-comment').value = '';
+//   } catch (err) {
+//     console.error(err);
+//     alert('Error submitting feedback.');
+//   }
+// });
 
 
 
