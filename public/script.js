@@ -247,6 +247,7 @@ async function renderGridFromPlacement(parts) {
 function renderBuildSummary(partsList, description, buildSteps) {
   const partsListContainer = document.getElementById('parts-list');
   const descriptionContainer = document.getElementById('build-description');
+  const buildStepsContainer = document.getElementById('build-steps');
 
   if (descriptionContainer) {
     descriptionContainer.textContent = description || "No description available.";
