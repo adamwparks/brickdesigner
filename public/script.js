@@ -222,8 +222,8 @@ async function renderGridFromPlacement(parts) {
     outline.style.position = 'absolute';
     outline.style.left = `${gx * studSizePx + 8}px`;
     outline.style.top = `${gy * studSizePx + 8}px`;
-    outline.style.width = `${pixelWidth + 2}px`;
-    outline.style.height = `${pixelHeight + 2}px`;
+    outline.style.width = `${pixelWidth}px`;
+    outline.style.height = `${pixelHeight}px`;
     outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
     outline.style.borderRadius = '6px';
     outline.style.pointerEvents = 'none';
