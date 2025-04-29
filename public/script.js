@@ -93,7 +93,8 @@ function parseBuildSteps(text) {
           description = line.trim();
         }
       }
-    } else if (line.trim() && line.startsWith('Step')) {
+    } else if (line.trim().startsWith('Step')) {
+      console.log(line);
       buildStepsList.push(line.trim());
     } else {
       if (line.trim().startsWith('-')) {
