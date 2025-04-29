@@ -68,10 +68,16 @@ function parseBuildSteps(text) {
   let description = "";
 
   let inPartsSection = false;
+  let inBuildStepsSection = false;
 
   for (const line of lines) {
     if (line.toLowerCase().includes('parts used summary')) {
       inPartsSection = true;
+      continue;
+    }
+
+    if (line.startsWith('Step')) {
+      inBuildStepsSection = true;
       continue;
     }
 
@@ -93,7 +99,7 @@ function parseBuildSteps(text) {
           description = line.trim();
         }
       }
-    } else if (line.trim().startsWith('Step')) {
+    } else if (inBuildStepsSection) {
       console.log(line);
       buildStepsList.push(line.trim());
     } else {
