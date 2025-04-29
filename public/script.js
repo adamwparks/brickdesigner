@@ -229,7 +229,7 @@ function colorNameToTailwind(colorName) {
     // Add more if needed!
   };
 
-  const result = map[colorName.toLowerCase()];
+  const result = colorMap[colorName.toLowerCase()];
   if (!result) {
     console.warn('Unknown color:', colorName);
     return 'bg-gray-300'; // fallback
