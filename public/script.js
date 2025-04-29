@@ -1,94 +1,172 @@
 import { initializeGrid, isPlacementSupported, markBrickOnGrid } from './gridOccupancy.js';
+
+// === GLOBAL STATE ===
 let buildSteps = "";
+let rejectedBricks = [];
 
-document.getElementById('lego-form').addEventListener('submit', async function (e) {
-  e.preventDefault();
+// === CORE FUNCTIONS ===
 
-  const parts = document.getElementById('parts').value.trim();
-  const theme = document.getElementById('theme').value;
+// Generate new build from GPT
+async function generateBuild() {
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}), // No parts list needed
+    });
 
-  if (!parts) {
-    alert("Please enter a parts list.");
+    const data = await response.json();
+
+    buildSteps = data.result; // Save the original build text
+    await parseAndRenderBuild(buildSteps); // Parse and render
+  } catch (error) {
+    console.error('Error generating build:', error);
+  }
+}
+
+// Refine build based on rejected bricks
+async function handleRefine() {
+  if (!buildSteps || rejectedBricks.length === 0) {
+    console.error('Cannot refine: missing buildSteps or rejected bricks.');
     return;
   }
 
-  document.getElementById('loading').classList.remove('hidden');
-  document.getElementById('output').classList.add('hidden');
-
   try {
-    const response = await fetch('/generate', {
+    const response = await fetch('/api/refine', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ partsList: parts, theme: theme })
+      body: JSON.stringify({ buildSteps, rejectedBricks }),
     });
 
-    if (!response.ok) throw new Error('Failed to generate build.');
     const data = await response.json();
-    buildSteps = data.result;
-    console.log('Full OpenAI response:', data.result);
 
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('build-result').innerHTML = data.result.replace(/\n/g, '<br/>');
-    document.getElementById('output').classList.remove('hidden');
-
-    function extractPartsSummary(fullText) {
-      // 1. Find the Parts Used Summary section
-      const partsSectionMatch = fullText.match(/Parts Used Summary:(.*)/is);
-      if (!partsSectionMatch) {
-        console.warn('No Parts Used Summary section found.');
-        return [];
-      }
-    
-      let partsSection = partsSectionMatch[1].trim();
-    
-      // 2. Basic markdown cleanup
-      partsSection = partsSection
-        .replace(/\*\*/g, '')       // Remove all bold markers **
-        .replace(/\*/g, '')         // Remove single asterisks if any
-        .replace(/^\- /gm, '')      // Remove leading dashes
-        .replace(/^\s*-\s*/gm, '')  // Handle spaces before dash
-        .trim();
-    
-      const lines = partsSection.split('\n');
-      const parts = [];
-    
-      // 3. Parse cleaned lines
-      for (let line of lines) {
-        line = line.trim();
-        if (line.length === 0) continue; // Skip blank lines
-    
-        const match = line.match(/^(\d+)x\s(\d+x\d+)\s.+?(?:\((.*?)\))?/i);
-        if (match) {
-          const quantity = parseInt(match[1], 10);
-          const size = match[2];
-          const color = match[3] ? match[3].toLowerCase() : 'gray'; // Default gray if missing
-    
-          for (let i = 0; i < quantity; i++) {
-            parts.push({ size, color });
-          }
-        } else {
-          console.warn('Could not parse line:', line);
-        }
-      }
-    
-      return parts;
-    }    
-    
-    const partsArray = parsePlacementInstructions(data.result);
-    console.log('Parsed parts array:', partsArray);
-    
-    if (partsArray.length > 0) {
-      await renderGridFromPlacement(partsArray);
+    if (data.result) {
+      buildSteps = data.result; // Update with refined plan
+      await parseAndRenderBuild(buildSteps); // Re-render
     } else {
-      console.warn('No parts parsed.');
+      console.error('No result from refine.');
     }
-
   } catch (error) {
-    console.error(error);
-    alert('There was an error generating the build.');
-    document.getElementById('loading').classList.add('hidden');
+    console.error('Error refining build:', error);
   }
+}
+
+// Parse GPT text into structured parts
+function parseBuildSteps(text) {
+  const lines = text.split('\n');
+  const parts = [];
+
+  for (const line of lines) {
+    const match = line.match(/Step \d+: Place (\d+x\d+) (\w+) brick at \((\d+),(\d+),(\d+)\), facing (\w+)/i);
+    if (match) {
+      const [, size, color, x, y, z, orientation] = match;
+      parts.push({
+        size,
+        color,
+        x: parseInt(x, 10),
+        y: parseInt(y, 10),
+        z: parseInt(z, 10),
+        orientation: orientation.toUpperCase()
+      });
+    }
+  }
+
+  return parts;
+}
+
+// Parse and Render the build
+async function parseAndRenderBuild(text) {
+  const parts = parseBuildSteps(text);
+  await renderGridFromPlacement(parts);
+}
+
+// Render grid based on parsed parts
+async function renderGridFromPlacement(parts) {
+  const gridCanvas = document.getElementById('grid-canvas');
+  gridCanvas.innerHTML = "";
+
+  const gridSize = 10;
+  const studSizePx = 30;
+  rejectedBricks = []; // Reset rejectedBricks before each new render
+
+  const occupancyGrid = initializeGrid();
+
+  gridCanvas.style.display = 'grid';
+  gridCanvas.style.gridTemplateColumns = `repeat(${gridSize}, ${studSizePx}px)`;
+  gridCanvas.style.gridTemplateRows = `repeat(${gridSize}, ${studSizePx}px)`;
+  gridCanvas.style.gap = '2px';
+  gridCanvas.className = 'bg-gray-100 p-2 rounded-lg';
+
+  const gridMap = {};
+
+  for (const part of parts) {
+    const { size, color, x, y, z, orientation } = part;
+    const [studWidth, studLength] = size.split('x').map(Number);
+
+    if (isPlacementSupported(x, y, z, studWidth, studLength, orientation, occupancyGrid)) {
+      const key = `${x},${y}`;
+
+      if (!gridMap[key]) {
+        gridMap[key] = [];
+      }
+
+      gridMap[key].push({ size, color, z, orientation });
+
+      markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
+    } else {
+      console.warn(`Unsupported placement for brick at (${x},${y},${z}). Skipping.`);
+
+      rejectedBricks.push({
+        step: parts.indexOf(part) + 1,
+        size: part.size,
+        color: part.color,
+        x: part.x,
+        y: part.y,
+        z: part.z,
+        orientation: part.orientation,
+        reason: 'unsupported (floating or insufficient studs)',
+      });
+    }
+  }
+
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'relative w-full h-full flex items-center justify-center bg-white border border-gray-200';
+      gridCanvas.appendChild(cell);
+    }
+  }
+
+  renderVerticalStudViewer(occupancyGrid); // Optional 3D vertical viewer
+
+  const refineButton = document.getElementById('refine-button');
+  if (refineButton) {
+    if (rejectedBricks.length > 0) {
+      refineButton.style.display = 'block';
+    } else {
+      refineButton.style.display = 'none';
+    }
+  }
+}
+
+// === EVENT BINDINGS ===
+
+document.getElementById('generate-button').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await generateBuild();
 });
+
+document.getElementById('refine-button').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await handleRefine();
+});
+
+// === HELPERS (assume you already have these somewhere) ===
+// - initializeGrid()
+// - markBrickOnGrid()
+// - isPlacementSupported()
+// - renderVerticalStudViewer()
+
 
 function colorNameToTailwind(colorName) {
   const colorMap = {
@@ -112,157 +190,157 @@ function colorNameToTailwind(colorName) {
   return colorMap[colorName.toLowerCase()] || 'bg-gray-400'; // fallback to gray
 }
 
-function parsePlacementInstructions(instructionsText) {
-  const parts = [];
+// function parsePlacementInstructions(instructionsText) {
+//   const parts = [];
 
-  const lines = instructionsText.split('\n');
-  for (let line of lines) {
-    line = line.trim();
-    if (line.length === 0) continue;
+//   const lines = instructionsText.split('\n');
+//   for (let line of lines) {
+//     line = line.trim();
+//     if (line.length === 0) continue;
 
-    const match = line.match(/place\s+(\d+x\d+)\s+(\w+)\s+\w+\s+at\s+\((\d+),\s*(\d+),\s*(\d+)\),\s*facing\s+(\w+)/i);
+//     const match = line.match(/place\s+(\d+x\d+)\s+(\w+)\s+\w+\s+at\s+\((\d+),\s*(\d+),\s*(\d+)\),\s*facing\s+(\w+)/i);
 
-    if (match) {
-      const size = match[1];
-      const color = match[2].toLowerCase();
-      const x = parseInt(match[3], 10);
-      const y = parseInt(match[4], 10);
-      const z = parseInt(match[5], 10);
-      const orientation = match[6].toUpperCase(); // NORTH, EAST, SOUTH, WEST
+//     if (match) {
+//       const size = match[1];
+//       const color = match[2].toLowerCase();
+//       const x = parseInt(match[3], 10);
+//       const y = parseInt(match[4], 10);
+//       const z = parseInt(match[5], 10);
+//       const orientation = match[6].toUpperCase(); // NORTH, EAST, SOUTH, WEST
 
-      parts.push({ size, color, x, y, z, orientation });
-    } else {
-      console.warn('Could not parse instruction line:', line);
-    }
-  }
+//       parts.push({ size, color, x, y, z, orientation });
+//     } else {
+//       console.warn('Could not parse instruction line:', line);
+//     }
+//   }
 
-  return parts;
-};
+//   return parts;
+// };
 
-async function renderGridFromPlacement(parts) {
-  const debugMode = document.getElementById('debug-toggle').checked;
-  const gridCanvas = document.getElementById('grid-canvas');
-  gridCanvas.innerHTML = "";
+// async function renderGridFromPlacement(parts) {
+//   const debugMode = document.getElementById('debug-toggle').checked;
+//   const gridCanvas = document.getElementById('grid-canvas');
+//   gridCanvas.innerHTML = "";
 
-  const selectedLayer = document.getElementById('layer-select').value;
-  const gridSize = 10;
-  const studSizePx = 30;
+//   const selectedLayer = document.getElementById('layer-select').value;
+//   const gridSize = 10;
+//   const studSizePx = 30;
 
-  const occupancyGrid = initializeGrid(); // New: Create fresh empty grid
-  const rejectedBricks = [];
+//   const occupancyGrid = initializeGrid(); // New: Create fresh empty grid
+//   const rejectedBricks = [];
 
-  // Set up the visual grid
-  gridCanvas.style.display = 'grid';
-  gridCanvas.style.gridTemplateColumns = `repeat(${gridSize}, ${studSizePx}px)`;
-  gridCanvas.style.gridTemplateRows = `repeat(${gridSize}, ${studSizePx}px)`;
-  gridCanvas.style.gap = '2px';
-  gridCanvas.className = 'bg-gray-100 p-2 rounded-lg';
+//   // Set up the visual grid
+//   gridCanvas.style.display = 'grid';
+//   gridCanvas.style.gridTemplateColumns = `repeat(${gridSize}, ${studSizePx}px)`;
+//   gridCanvas.style.gridTemplateRows = `repeat(${gridSize}, ${studSizePx}px)`;
+//   gridCanvas.style.gap = '2px';
+//   gridCanvas.className = 'bg-gray-100 p-2 rounded-lg';
 
-  // Build a map for bricks on this layer
-  const gridMap = {};
+//   // Build a map for bricks on this layer
+//   const gridMap = {};
 
-  for (let part of parts) {
-    const { size, color, x, y, z, orientation } = part;
-    const [studWidth, studLength] = size.split('x').map(Number);
+//   for (let part of parts) {
+//     const { size, color, x, y, z, orientation } = part;
+//     const [studWidth, studLength] = size.split('x').map(Number);
 
-    // Check if user selected a specific layer
-    if (selectedLayer !== "all" && parseInt(selectedLayer) !== z) {
-      continue;
-    }
+//     // Check if user selected a specific layer
+//     if (selectedLayer !== "all" && parseInt(selectedLayer) !== z) {
+//       continue;
+//     }
 
-    // Check if the brick placement is supported
-    if (isPlacementSupported(x, y, z, studWidth, studLength, orientation, occupancyGrid)) {
-      const key = `${x},${y}`;
+//     // Check if the brick placement is supported
+//     if (isPlacementSupported(x, y, z, studWidth, studLength, orientation, occupancyGrid)) {
+//       const key = `${x},${y}`;
     
-      if (!gridMap[key]) {
-        gridMap[key] = [];
-      }
+//       if (!gridMap[key]) {
+//         gridMap[key] = [];
+//       }
     
-      gridMap[key].push({ size, color, z, orientation });
+//       gridMap[key].push({ size, color, z, orientation });
     
-      markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
-    } else {
-      console.warn(`Unsupported placement for brick at (${x},${y},${z}). Skipping.`);
+//       markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
+//     } else {
+//       console.warn(`Unsupported placement for brick at (${x},${y},${z}). Skipping.`);
       
-      rejectedBricks.push({
-        step: parts.indexOf(part) + 1, // assuming parts are in order
-        size: part.size,
-        color: part.color,
-        x: part.x,
-        y: part.y,
-        z: part.z,
-        orientation: part.orientation,
-        reason: 'unsupported (floating or insufficient studs)',
-      });
-    }    
-  }
+//       rejectedBricks.push({
+//         step: parts.indexOf(part) + 1, // assuming parts are in order
+//         size: part.size,
+//         color: part.color,
+//         x: part.x,
+//         y: part.y,
+//         z: part.z,
+//         orientation: part.orientation,
+//         reason: 'unsupported (floating or insufficient studs)',
+//       });
+//     }    
+//   }
 
-  // Now visually render all bricks
-  for (let row = 0; row < gridSize; row++) {
-    for (let col = 0; col < gridSize; col++) {
-      const cell = document.createElement('div');
-      cell.className = 'relative w-full h-full flex items-center justify-center bg-white border border-gray-200';
+//   // Now visually render all bricks
+//   for (let row = 0; row < gridSize; row++) {
+//     for (let col = 0; col < gridSize; col++) {
+//       const cell = document.createElement('div');
+//       cell.className = 'relative w-full h-full flex items-center justify-center bg-white border border-gray-200';
       
-      const key = `${col},${row}`;
+//       const key = `${col},${row}`;
       
-      // Draw the brick visually if a brick exists at this cell
-      if (gridMap[key]) {
-        gridMap[key].sort((a, b) => a.z - b.z);
-        const topBrick = gridMap[key][gridMap[key].length - 1];
+//       // Draw the brick visually if a brick exists at this cell
+//       if (gridMap[key]) {
+//         gridMap[key].sort((a, b) => a.z - b.z);
+//         const topBrick = gridMap[key][gridMap[key].length - 1];
       
-        const brick = document.createElement('div');
-        brick.className = `${colorNameToTailwind(topBrick.color)} border border-gray-400 rounded-md w-4 h-4 transition-all duration-500 ease-out`;
-        brick.title = `${topBrick.size} at z=${topBrick.z}, facing ${topBrick.orientation}`;
+//         const brick = document.createElement('div');
+//         brick.className = `${colorNameToTailwind(topBrick.color)} border border-gray-400 rounded-md w-4 h-4 transition-all duration-500 ease-out`;
+//         brick.title = `${topBrick.size} at z=${topBrick.z}, facing ${topBrick.orientation}`;
       
-        brick.style.transform = 'translateY(-100px)';
-        brick.style.opacity = '0';
+//         brick.style.transform = 'translateY(-100px)';
+//         brick.style.opacity = '0';
       
-        void brick.offsetWidth;
+//         void brick.offsetWidth;
       
-        setTimeout(() => {
-          brick.style.transform = 'translateY(0)';
-          brick.style.opacity = '1';
-        }, Math.random() * 300);
+//         setTimeout(() => {
+//           brick.style.transform = 'translateY(0)';
+//           brick.style.opacity = '1';
+//         }, Math.random() * 300);
       
-        cell.appendChild(brick);
-      }
+//         cell.appendChild(brick);
+//       }
       
-      // 🧠 NEW: If Debug Mode ON, draw stud occupancy
-      if (debugMode) {
-        const selectedLayerInt = selectedLayer === "all" ? 0 : parseInt(selectedLayer);
+//       // 🧠 NEW: If Debug Mode ON, draw stud occupancy
+//       if (debugMode) {
+//         const selectedLayerInt = selectedLayer === "all" ? 0 : parseInt(selectedLayer);
       
-        const occupancy = occupancyGrid[col][row][selectedLayerInt];
+//         const occupancy = occupancyGrid[col][row][selectedLayerInt];
       
-        const debugDot = document.createElement('div');
-        debugDot.className = occupancy ? 'bg-green-500 rounded-full w-2 h-2' : 'bg-red-300 rounded-full w-2 h-2';
-        debugDot.style.position = 'absolute';
-        debugDot.style.bottom = '4px';
-        debugDot.style.right = '4px';
-        debugDot.title = occupancy ? 'Stud occupied' : 'Empty stud';
+//         const debugDot = document.createElement('div');
+//         debugDot.className = occupancy ? 'bg-green-500 rounded-full w-2 h-2' : 'bg-red-300 rounded-full w-2 h-2';
+//         debugDot.style.position = 'absolute';
+//         debugDot.style.bottom = '4px';
+//         debugDot.style.right = '4px';
+//         debugDot.title = occupancy ? 'Stud occupied' : 'Empty stud';
       
-        cell.appendChild(debugDot);
-      }
+//         cell.appendChild(debugDot);
+//       }
       
-      gridCanvas.appendChild(cell);
-      renderVerticalStudViewer(occupancyGrid);
-    }
-  }
-  if (rejectedBricks.length > 0) {
-    console.log('Rejected bricks detected:', rejectedBricks);
+//       gridCanvas.appendChild(cell);
+//       renderVerticalStudViewer(occupancyGrid);
+//     }
+//   }
+//   if (rejectedBricks.length > 0) {
+//     console.log('Rejected bricks detected:', rejectedBricks);
   
-    // Optionally show a "Refine Build" button
-    const refineButton = document.getElementById('refine-button');
-    if (refineButton) {
-      refineButton.style.display = 'block';
-      refineButton.onclick = () => handleRefine(buildSteps, rejectedBricks);
-    }
-  } else {
-    const refineButton = document.getElementById('refine-button');
-    if (refineButton) {
-      refineButton.style.display = 'none';
-    }
-  }
-};
+//     // Optionally show a "Refine Build" button
+//     const refineButton = document.getElementById('refine-button');
+//     if (refineButton) {
+//       refineButton.style.display = 'block';
+//       refineButton.onclick = () => handleRefine(buildSteps, rejectedBricks);
+//     }
+//   } else {
+//     const refineButton = document.getElementById('refine-button');
+//     if (refineButton) {
+//       refineButton.style.display = 'none';
+//     }
+//   }
+// };
 
 function renderVerticalStudViewer(occupancyGrid) {
   const verticalCanvas = document.getElementById('vertical-canvas');
@@ -302,36 +380,14 @@ function renderVerticalStudViewer(occupancyGrid) {
   }
 };
 
-async function handleRefine(buildSteps, rejectedBricks) {
-  try {
-    const response = await fetch('/api/refine', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ buildSteps, rejectedBricks }),
-    });
+// let currentParts = [];
+// console.log('current parts = ' + currentParts);
 
-    const data = await response.json();
-
-    if (data.result) {
-      console.log('Received refined build:', data.result);
-      // Now you can rerun parsing and rendering with the new instructions
-      parseAndRenderBuild(data.result);
-    } else {
-      console.error('No result in refine response.');
-    }
-  } catch (error) {
-    console.error('Error refining build:', error);
-  }
-};
-
-let currentParts = [];
-console.log('current parts = ' + currentParts);
-
-document.getElementById('layer-select').addEventListener('change', () => {
-  if (currentParts.length > 0) {
-    renderGridFromPlacement(currentParts);
-  }
-});
+// document.getElementById('layer-select').addEventListener('change', () => {
+//   if (currentParts.length > 0) {
+//     renderGridFromPlacement(currentParts);
+//   }
+// });
 
 let selectedFeedback = '';
 
