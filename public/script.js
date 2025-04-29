@@ -96,10 +96,10 @@ function parseBuildSteps(text) {
         if (!description) {
           description = line.trim();
         }
+      } else if (inBuildStepsSection) {
+        console.log(line);
+        buildStepsList.push(line.trim());
       }
-    } else if (inBuildStepsSection) {
-      console.log(line);
-      buildStepsList.push(line.trim());
     } else {
       if (line.trim().startsWith('-')) {
         partsList.push(line.trim().slice(1).trim());
