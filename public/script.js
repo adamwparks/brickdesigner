@@ -105,7 +105,6 @@ async function renderGridFromPlacement(parts) {
   gridCanvas.style.gridTemplateColumns = `repeat(${gridSize}, ${studSizePx}px)`;
   gridCanvas.style.gridTemplateRows = `repeat(${gridSize}, ${studSizePx}px)`;
   gridCanvas.style.gap = '2px';
-  gridCanvas.className = 'bg-gray-100 p-2 rounded-lg';
 
   // Track the topmost brick at each (x, y)
   const topStudsMap = Array.from({ length: gridSize }, () =>
@@ -201,10 +200,10 @@ async function renderGridFromPlacement(parts) {
 
     const outline = document.createElement('div');
     outline.style.position = 'absolute';
-    outline.style.left = `${gx * studSizePx}px`;
-    outline.style.top = `${gy * studSizePx}px`;
-    outline.style.width = `${pixelWidth}px`;
-    outline.style.height = `${pixelHeight}px`;
+    outline.style.left = `${gx * studSizePx + 8}px`;
+    outline.style.top = `${gy * studSizePx + 8}px`;
+    outline.style.width = `${pixelWidth + 2}px`;
+    outline.style.height = `${pixelHeight + 2}px`;
     outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
     outline.style.borderRadius = '6px';
     outline.style.pointerEvents = 'none';
