@@ -106,8 +106,9 @@ function parseBuildSteps(text) {
         }
       }
     } else {
-      if (line.trim().startsWith('-')) {
-        partsList.push(line.trim().slice(1).trim());
+      const partsLineMatch = line.trim().match(/^(\d+x\d+)\s+\w+\s+brick\s+×\s+\d+/i);
+      if (partsLineMatch) {
+        partsList.push(line.trim());
       }
     }
   }
