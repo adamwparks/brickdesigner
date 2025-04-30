@@ -38,7 +38,7 @@ Please regenerate the build:
 - Only use these part types: 2x4, 1x2, 4x4, 2x6, 1x4
 - Stay within a 10x10 grid (x: 0-9, y: 0-9)
 - Maintain simple Step-by-Step format:
-Step 1: Place {size} {color} brick at (x,y,z), facing {direction}
+Step 1: Place {size} {color} brick at (x,y,z), {direction}
 ...
 Parts Used Summary:
 `;

@@ -23,18 +23,12 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
       let nx = x;
       let ny = y;
 
-      if (orientation === 'NORTH') {
+      if (orientation === 'HORIZONTAL') {
         nx = x + dx;
-        ny = y - dy;
-      } else if (orientation === 'EAST') {
+        ny = y + dy;
+      } else if (orientation === 'VERTICAL') {
         nx = x + dy;
         ny = y + dx;
-      } else if (orientation === 'SOUTH') {
-        nx = x - dx;
-        ny = y + dy;
-      } else if (orientation === 'WEST') {
-        nx = x - dy;
-        ny = y - dx;
       }
 
       if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize) {
@@ -62,18 +56,12 @@ export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGr
       let nx = x;
       let ny = y;
 
-      if (orientation === 'NORTH') {
+      if (orientation === 'HORIZONTAL') {
         nx = x + dx;
-        ny = y - dy;
-      } else if (orientation === 'EAST') {
+        ny = y + dy;
+      } else if (orientation === 'VERTICAL') {
         nx = x + dy;
         ny = y + dx;
-      } else if (orientation === 'SOUTH') {
-        nx = x - dx;
-        ny = y + dy;
-      } else if (orientation === 'WEST') {
-        nx = x - dy;
-        ny = y - dx;
       }
 
       if (nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize) {
@@ -88,18 +76,12 @@ export function isPlacementClear(x, y, z, width, length, orientation, occupancyG
     for (let dy = 0; dy < length; dy++) {
       let gx = x, gy = y;
 
-      if (orientation === 'NORTH') {
-        gx = x + dx;
-        gy = y - dy;
-      } else if (orientation === 'EAST') {
-        gx = x + dy;
-        gy = y + dx;
-      } else if (orientation === 'SOUTH') {
-        gx = x - dx;
-        gy = y + dy;
-      } else if (orientation === 'WEST') {
-        gx = x - dy;
-        gy = y - dx;
+      if (orientation === 'HORIZONTAL') {
+        nx = x + dx;
+        ny = y + dy;
+      } else if (orientation === 'VERTICAL') {
+        nx = x + dy;
+        ny = y + dx;
       }
 
       if (
