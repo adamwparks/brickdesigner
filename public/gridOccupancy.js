@@ -31,13 +31,15 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
         ny = y + dx;
       }
 
-      if (nx < 0 || ny < 0 || nx >= gridSize || ny >= gridSize) {
-        continue;
-      }
-
-      if (occupancyGrid[nx][ny][z - 1]) {
+      if (
+        nx >= 0 && ny >= 0 &&
+        nx < gridSize && ny < gridSize &&
+        occupancyGrid[nx] &&
+        occupancyGrid[nx][ny] &&
+        occupancyGrid[nx][ny][z - 1]
+      ) {
         supportedStuds++;
-      }
+      }      
     }
   }
   
@@ -64,9 +66,14 @@ export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGr
         ny = y + dx;
       }
 
-      if (nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize) {
+      if (
+        nx >= 0 && ny >= 0 &&
+        nx < gridSize && ny < gridSize &&
+        occupancyGrid[nx] &&
+        occupancyGrid[nx][ny]
+      ) {
         occupancyGrid[nx][ny][z] = true;
-      }
+      }      
     }
   }
 }
@@ -91,9 +98,17 @@ export function isPlacementClear(x, y, z, width, length, orientation, occupancyG
         return false;
       }
 
-      if (occupancyGrid[gx][gy][z]) {
-        return false; // Collision!
+      if (
+        gx < 0 || gy < 0 ||
+        gx >= occupancyGrid.length || gy >= occupancyGrid[0].length ||
+        !occupancyGrid[gx] || !occupancyGrid[gx][gy]
+      ) {
+        return false;
       }
+      
+      if (occupancyGrid[gx][gy][z]) {
+        return false; // Brick already occupies this spot
+      }      
     }
   }
   return true;
