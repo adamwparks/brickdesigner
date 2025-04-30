@@ -12,11 +12,15 @@ let currentParts = [];  // Store current parts globally for dropdown use
 async function generateBuild() {
   showSpinner();
   try {
+    const partsText = document.getElementById('parts-input')?.value.trim();
+    const payload = partsText ? { partsList: partsText } : {};
+
     const response = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}), // No parts list needed
+      body: JSON.stringify(payload),
     });
+
 
     const data = await response.json();
 
@@ -198,7 +202,7 @@ async function renderGridFromPlacement(parts) {
   }
 
   for (const brick of topBricks) {
-    if (brick.z > selectedLayer) continue;
+    if (brick.z !== selectedLayer) continue;
 
     const [studWidth, studLength] = brick.size.split('x').map(Number);
     let pixelWidth = studWidth * studSizePx;

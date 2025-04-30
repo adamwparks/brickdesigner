@@ -34,6 +34,12 @@ You are simulating a 10x10x10 3D grid. As you place each brick, update your virt
 - Check at least one of those coordinates is supported from below
 - Only place if both are true
 
+If a parts list is provided, only use those bricks in your design. Do not use any bricks not in the list.
+
+Example format:
+2x4 red brick x 4  
+1x2 blue brick x 6
+
 Output format:
 Step 1: Place {size} {color} brick at (x,y,z), facing {direction}
 Step 2: Place {size} {color} brick at (x,y,z), facing {direction}
@@ -47,14 +53,25 @@ No markdown, no bullet points — output only clean plain text instructions.
 Prioritize buildability and stability over creativity.
 `;
 
+    const userParts = req.body.partsList || '';
+    
+    const messages = [
+      {
+        role: 'system',
+        content: prompt  // your base prompt
+      }
+    ];
+
+    if (userParts) {
+      messages.push({
+        role: 'user',
+        content: `Use only these parts:\n${userParts}`
+      });
+    }    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o', // (or 'gpt-4', or whichever model you are using)
-      messages: [
-        {
-          role: 'system',
-          content: prompt,
-        },
-      ],
+      messages,
       temperature: 0.6,
       max_tokens: 800,
     });
