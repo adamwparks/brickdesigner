@@ -231,8 +231,6 @@ async function renderGridFromPlacement(parts) {
     gridCanvas.appendChild(outline);
   }
 
-  renderVerticalStudViewer(occupancyGrid);
-
   const refineButton = document.getElementById('refine-button');
   refineButton.style.display = rejectedBricks.length > 0 ? 'block' : 'none';
 };
@@ -326,44 +324,6 @@ function colorNameToTailwind(colorName) {
 
   return result;
 }
-
-function renderVerticalStudViewer(occupancyGrid) {
-  const verticalCanvas = document.getElementById('vertical-canvas');
-  verticalCanvas.innerHTML = "";
-
-  const gridSize = 10;
-  const studSizePx = 20; // Each stud 20px × 20px
-  const layerSpacing = 30; // How far up each layer is spaced
-
-  // Container div to center grid
-  const container = document.createElement('div');
-  container.style.position = 'relative';
-  container.style.width = `${gridSize * studSizePx}px`;
-  container.style.height = `${(gridSize * studSizePx) + (10 * layerSpacing)}px`;
-
-  verticalCanvas.appendChild(container);
-
-  for (let z = 0; z < 10; z++) { // For each layer
-    for (let y = 0; y < gridSize; y++) {
-      for (let x = 0; x < gridSize; x++) {
-
-        const occupied = occupancyGrid[x][y][z];
-
-        const stud = document.createElement('div');
-        stud.className = 'absolute rounded-full';
-        stud.style.width = `${studSizePx}px`;
-        stud.style.height = `${studSizePx}px`;
-        stud.style.left = `${x * studSizePx}px`;
-        stud.style.top = `${y * studSizePx - (z * layerSpacing)}px`; // Stagger up for higher z
-        stud.style.backgroundColor = occupied ? `rgba(34,197,94,${0.4 + z * 0.05})` : `rgba(203,213,225,0.2)`;
-        stud.style.border = occupied ? '1px solid #4ade80' : '1px dashed #cbd5e1';
-        stud.title = `(${x},${y},${z}) - ${occupied ? "Occupied" : "Empty"}`;
-
-        container.appendChild(stud);
-      }
-    }
-  }
-};
 
 // === EVENT BINDINGS ===
 

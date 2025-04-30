@@ -17,7 +17,8 @@ Rules:
 - Each brick must be placed ONLY if there is enough empty space at that layer for the full footprint.
 - Bricks may not overlap with existing bricks in the same (x, y, z) layer.
 - Bricks are placed on a 10x10 grid (x: 0-9, y: 0-9).
-- Each brick must have a coordinate (x,y,z) and a facing orientation (North, East, South, or West).
+- Each brick coordinate (x,y,z) corresponds to the top left corner after it is placed.
+- Each brick must be given a direction of horizontal or vertical, i.e. "east-west" or "north-south".
 - Bricks must fully fit inside the 10x10 grid — no overhanging.
 - Each brick must be adjacent or connected to another brick.
 - The final creation must resemble a real world object.
@@ -41,8 +42,8 @@ Example format:
 1x2 blue brick x 6
 
 Output format:
-Step 1: Place {size} {color} brick at (x,y,z), facing {direction}
-Step 2: Place {size} {color} brick at (x,y,z), facing {direction}
+Step 1: Place {size} {color} brick at (x,y,z), {direction}
+Step 2: Place {size} {color} brick at (x,y,z), {direction}
 ...
 Parts Used Summary:
 - {size} {color} brick x {quantity}
@@ -54,7 +55,7 @@ Prioritize buildability and stability over creativity.
 `;
 
     const userParts = req.body.partsList || '';
-    
+
     const messages = [
       {
         role: 'system',
