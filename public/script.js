@@ -106,9 +106,10 @@ function parseBuildSteps(text) {
         }
       }
     } else {
-      const partsLineMatch = line.trim().match(/^(\d+x\d+)\s+\w+\s+brick\s+×\s+\d+/i);
+      const cleanedLine = line.trim().replace(/^-/, '').trim();
+      const partsLineMatch = cleanedLine.match(/^(\d+x\d+)\s+(\w+)\s+\w+\s+[x×]\s+(\d+)/i);
       if (partsLineMatch) {
-        partsList.push(line.trim());
+        partsList.push(cleanedLine);
       }
     }
   }
