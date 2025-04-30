@@ -1,4 +1,4 @@
-import { initializeGrid, isPlacementSupported, markBrickOnGrid } from './gridOccupancy.js';
+import { initializeGrid, isPlacementSupported, markBrickOnGrid, isPlacementClear } from './gridOccupancy.js';
 
 // === GLOBAL STATE ===
 let buildSteps = "";
@@ -144,7 +144,8 @@ async function renderGridFromPlacement(parts) {
 
     const [studWidth, studLength] = size.split('x').map(Number);
 
-    if (isPlacementSupported(x, y, z, studWidth, studLength, orientation, occupancyGrid)) {
+    if (isPlacementSupported(x, y, z, studWidth, studLength, orientation, occupancyGrid) &&
+       isPlacementClear(x, y, z, studWidth, studLength, orientation, occupancyGrid)) {
       markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
       topBricks.push({ x, y, z, size, color, orientation });
 

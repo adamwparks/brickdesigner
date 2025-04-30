@@ -82,3 +82,37 @@ export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGr
     }
   }
 }
+
+export function isPlacementClear(x, y, z, width, length, orientation, occupancyGrid) {
+  for (let dx = 0; dx < width; dx++) {
+    for (let dy = 0; dy < length; dy++) {
+      let gx = x, gy = y;
+
+      if (orientation === 'NORTH') {
+        gx = x + dx;
+        gy = y - dy;
+      } else if (orientation === 'EAST') {
+        gx = x + dy;
+        gy = y + dx;
+      } else if (orientation === 'SOUTH') {
+        gx = x - dx;
+        gy = y + dy;
+      } else if (orientation === 'WEST') {
+        gx = x - dy;
+        gy = y - dx;
+      }
+
+      if (
+        gx < 0 || gx >= occupancyGrid.length ||
+        gy < 0 || gy >= occupancyGrid[0].length
+      ) {
+        return false;
+      }
+
+      if (occupancyGrid[gx][gy][z]) {
+        return false; // Collision!
+      }
+    }
+  }
+  return true;
+}

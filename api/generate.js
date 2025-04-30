@@ -11,11 +11,11 @@ export default async function handler(req, res) {
 
   try {
     const prompt = `
-You are a professional LEGO Master Builder assistant.
-
-Generate a step-by-step LEGO build with up to 15 bricks. Each brick must follow proper physical support rules.
+You are a LEGO build planning agent. Your job is to generate step-by-step build instructions that a user can follow in real life.
 
 Rules:
+- Each brick must be placed ONLY if there is enough empty space at that layer for the full footprint.
+- Bricks may not overlap with existing bricks in the same (x, y, z) layer.
 - Bricks are placed on a 10x10 grid (x: 0-9, y: 0-9).
 - Each brick must have a coordinate (x,y,z) and a facing orientation (North, East, South, or West).
 - Bricks must fully fit inside the 10x10 grid — no overhanging.
@@ -27,6 +27,12 @@ Rules:
 - Larger bricks (over 4 studs long) should preferably have 2+ supporting studs if possible.
 - Do NOT place floating bricks.
 - Only use standard top-down stud stacking — no side studs.
+
+Tracking:
+You are simulating a 10x10x10 3D grid. As you place each brick, update your virtual grid to mark where bricks are now occupied. Before each new step:
+- Check all target (x, y) coordinates at the layer to ensure they are empty
+- Check at least one of those coordinates is supported from below
+- Only place if both are true
 
 Output format:
 Step 1: Place {size} {color} brick at (x,y,z), facing {direction}
