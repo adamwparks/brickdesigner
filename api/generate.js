@@ -68,18 +68,19 @@ Prioritize buildability and stability over creativity.
         role: 'user',
         content: `Use only these parts:\n${userParts}`
       });
-    }    
+    }
 
+    console.log('Prompt with user parts:', messages);
+    
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o', // (or 'gpt-4', or whichever model you are using)
+      model: 'gpt-4o',
       messages,
-      temperature: 0.6,
-      max_tokens: 800,
+      temperature: 0.7,
+      max_tokens: 1000,
     });
-
     const generatedText = completion.choices[0]?.message?.content;
-
     return res.status(200).json({ result: generatedText });
+    
   } catch (error) {
     console.error('OpenAI API error:', error);
     return res.status(500).json({ error: 'Failed to generate build.' });

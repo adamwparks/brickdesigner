@@ -21,7 +21,11 @@ async function generateBuild() {
       body: JSON.stringify(payload),
     });
 
-
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Server error: ${text}`);
+    }
+    
     const data = await response.json();
 
     buildSteps = data.result; // Save the original build text
@@ -156,14 +160,12 @@ async function renderGridFromPlacement(parts) {
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
           let gx = x, gy = y;
-          if (orientation === 'NORTH') {
-            gx = x + dx; gy = y - dy;
-          } else if (orientation === 'EAST') {
-            gx = x + dy; gy = y + dx;
-          } else if (orientation === 'SOUTH') {
-            gx = x - dx; gy = y + dy;
-          } else if (orientation === 'WEST') {
-            gx = x - dy; gy = y - dx;
+          if (orientation === 'HORIZONTAL') {
+            nx = x + dx;
+            ny = y + dy;
+          } else if (orientation === 'VERTICAL') {
+            nx = x + dy;
+            ny = y + dx;
           }
 
           if (
@@ -210,7 +212,7 @@ async function renderGridFromPlacement(parts) {
     let gx = brick.x;
     let gy = brick.y;
 
-    if (brick.orientation === 'NORTH' || brick.orientation === 'SOUTH') {
+    if (brick.orientation === 'VERTICAL') {
       pixelWidth = studWidth * studSizePx;
       pixelHeight = studLength * studSizePx;
     } else {
