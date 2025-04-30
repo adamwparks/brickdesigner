@@ -86,7 +86,7 @@ function parseBuildSteps(text) {
     }
 
     if (!inPartsSection) {
-      const match = line.match(/Step \d+: Place (\d+x\d+) (\w+) brick at \((\d+),(\d+),(\d+)\), facing (\w+)/i);
+      const match = line.match(/Step \d+: Place (\d+x\d+) (\w+) brick at \((\d+),(\d+),(\d+)\),\s*(horizontal|vertical)/i);
       if (match) {
         const [, size, color, x, y, z, orientation] = match;
         parts.push({
