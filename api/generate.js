@@ -18,7 +18,7 @@ Rules:
 - Bricks may not overlap with existing bricks in the same (x, y, z) layer.
 - Bricks are placed on a 10x10 grid (x: 0-9, y: 0-9).
 - Each brick coordinate (x,y,z) corresponds to the top left corner after it is placed.
-- Each brick must be given a direction of horizontal or vertical, i.e. "east-west" or "north-south".
+- Each brick must be given a direction of "horizontal" if it's facing east-west or "vertical" if it's facing north-south.
 - Bricks must fully fit inside the 10x10 grid — no overhanging.
 - Each brick must be adjacent or connected to another brick.
 - The final creation must resemble a real world object.
