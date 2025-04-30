@@ -104,15 +104,15 @@ function parseBuildSteps(text) {
     }
   }
 
-  return { parts, partsList, description };
+  return { parts, partsList, description, buildStepsList };
 };
 
 // Parse and Render the build
 async function parseAndRenderBuild(text) {
-  const { parts, partsList, description } = parseBuildSteps(text);
+  const { parts, partsList, description, buildStepsList } = parseBuildSteps(text);
   populateLayerDropdown(parts);
   await renderGridFromPlacement(parts);
-  renderBuildSummary(partsList, description);
+  renderBuildSummary(partsList, description, buildStepsList);
 }
 
 // Render grid based on parsed parts
@@ -232,7 +232,7 @@ async function renderGridFromPlacement(parts) {
   refineButton.style.display = rejectedBricks.length > 0 ? 'block' : 'none';
 };
 
-function renderBuildSummary(partsList, description) {
+function renderBuildSummary(partsList, description, buildStepsList) {
   const partsListContainer = document.getElementById('parts-list');
   const descriptionContainer = document.getElementById('build-description');
   const buildStepsContainer = document.getElementById('build-steps');
@@ -243,7 +243,7 @@ function renderBuildSummary(partsList, description) {
 
   if (buildStepsContainer) {
     buildStepsContainer.innerHTML = "";
-    for (const item of buildStepsContainer) {
+    for (const item of buildStepsList) {
       const li = document.createElement('li');
       li.textContent = item;
       buildStepsContainer.appendChild(li);
