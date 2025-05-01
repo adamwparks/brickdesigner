@@ -162,6 +162,8 @@ async function renderGridFromPlacement(parts) {
     layerSelect.appendChild(option);
   }
 
+  layerSelect.value = selectedLayer;
+
   const gridSize = 10;
   const studSizePx = 30;
   rejectedBricks = [];
