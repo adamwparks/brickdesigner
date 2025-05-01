@@ -187,6 +187,7 @@ async function renderGridFromPlacement(parts) {
       outline.style.width = `${pixelWidth}px`;
       outline.style.height = `${pixelHeight}px`;
       outline.style.boxSizing = 'border-box';
+      outline.style.zIndex = '10';
       gridCanvas.appendChild(outline);
 
       for (let dx = 0; dx < studWidth; dx++) {
