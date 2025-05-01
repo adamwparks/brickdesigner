@@ -202,6 +202,8 @@ async function renderGridFromPlacement(parts) {
     for (let col = 0; col < gridSize; col++) {
       const cell = document.createElement('div');
       cell.className = 'relative flex items-center justify-center bg-white border border-gray-200';
+      cell.style.width = `${studSizePx}px`;
+      cell.style.height = `${studSizePx}px`;
       
       // ✅ Explicit grid placement
       cell.style.gridRow = row + 1;
