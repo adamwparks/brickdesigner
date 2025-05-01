@@ -4,7 +4,7 @@ const gridSize = 10;
 const gridHeight = 10;
 
 // orientation logic
-export function getOrientedSize(sizeStr, orientation) {
+export function getOrientedDimensions(sizeStr, orientation) {
   const [width, length] = sizeStr.split('x').map(Number);
   return getOrientedDimensions(width, length, orientation);
 }
