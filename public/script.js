@@ -198,11 +198,15 @@ async function renderGridFromPlacement(parts) {
     }
   }
 
-  for (let col = 0; col < gridSize; col++) {
-    for (let row = 0; row < gridSize; row++) {
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
       const cell = document.createElement('div');
-      cell.className = 'relative w-full h-full flex items-center justify-center bg-white border border-gray-200';
-
+      cell.className = 'relative flex items-center justify-center bg-white border border-gray-200';
+      
+      // ✅ Explicit grid placement
+      cell.style.gridRow = row + 1;
+      cell.style.gridColumn = col + 1;
+  
       const stud = topStudsMap[col][row];
       if (stud) {
         const dot = document.createElement('div');
@@ -210,9 +214,10 @@ async function renderGridFromPlacement(parts) {
         dot.title = `${stud.studWidth}x${stud.studLength} brick facing ${stud.orientation}, z=${stud.z}`;
         cell.appendChild(dot);
       }
+  
       gridCanvas.appendChild(cell);
     }
-  }
+  }  
 
   for (const brick of topBricks) {
     if (brick.z > selectedLayer) continue;
