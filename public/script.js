@@ -1,4 +1,4 @@
-import { initializeGrid, isPlacementSupported, markBrickOnGrid, isPlacementClear } from './gridOccupancy.js';
+import { initializeGrid, isPlacementSupported, markPlacement, isPlacementClear } from './gridOccupancy.js';
 import { getOrientedSize } from './brickUtils.js';
 
 // === GLOBAL STATE ===
@@ -167,7 +167,11 @@ async function renderGridFromPlacement(parts) {
 
     const [studWidth, studLength] = getOrientedSize(size, orientation);
 
-    if (isPlacementClear(x, y, z, size, orientation, occupancyGrid)) {
+    if (
+      isPlacementClear(x, y, z, size, orientation, occupancyGrid) &&
+      isPlacementSupported(x, y, z, size, orientation, occupancyGrid)
+    )
+     {
       markPlacement(x, y, z, size, orientation, occupancyGrid);
       topBricks.push({ x, y, z, size, color, orientation });
 

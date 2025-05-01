@@ -13,43 +13,28 @@ export function initializeGrid() {
 }
 
 // Check if placement is supported (at least one stud supported below)
-export function isPlacementSupported(x, y, z, width, length, orientation, occupancyGrid) {
-  if (z === 0) return true; // Ground level always supported
+export function isPlacementSupported(x, y, z, size, orientation, occupancyGrid) {
+  const [w, l] = getOrientedSize(size, orientation);
 
-  let supportedStuds = 0;
+  // Base layer is always supported
+  if (z === 0) return true;
 
-  for (let dx = 0; dx < width; dx++) {
-    for (let dy = 0; dy < length; dy++) {
-      let nx = x;
-      let ny = y;
+  for (let dx = 0; dx < w; dx++) {
+    for (let dy = 0; dy < l; dy++) {
+      const gx = x + dx;
+      const gy = y + dy;
 
-      if (orientation === 'HORIZONTAL') {
-        nx = x + dx;
-        ny = y;
-      } else if (orientation === 'VERTICAL') {
-        nx = x;
-        ny = y + dx;
+      // Check for a brick directly underneath
+      if (occupancyGrid[gx]?.[gy]?.[z - 1]) {
+        return true;
       }
-
-      if (
-        nx >= 0 && ny >= 0 &&
-        nx < gridSize && ny < gridSize &&
-        occupancyGrid[nx] &&
-        occupancyGrid[nx][ny] &&
-        occupancyGrid[nx][ny][z - 1]
-      ) {
-        supportedStuds++;
-      }      
     }
   }
-  
-  // If NO studs are supported at all → placement invalid immediately
-  if (supportedStuds === 0) {
-    return false;
-  }
 
-  return supportedStuds >= 1;
+  // No studs below at any location
+  return false;
 }
+
 
 export function isPlacementClear(x, y, z, size, orientation, occupancyGrid) {
   const [w, l] = getOrientedSize(size, orientation);
@@ -69,7 +54,7 @@ export function isPlacementClear(x, y, z, size, orientation, occupancyGrid) {
   return true;
 }
 
-export function markBrickOnGrid(x, y, z, size, orientation, occupancyGrid) {
+export function markPlacement(x, y, z, size, orientation, occupancyGrid) {
   const [w, l] = getOrientedSize(size, orientation);
   for (let dx = 0; dx < w; dx++) {
     for (let dy = 0; dy < l; dy++) {
