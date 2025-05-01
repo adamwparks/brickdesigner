@@ -86,18 +86,21 @@ function parseBuildSteps(text) {
     }
 
     if (!inPartsSection) {
-      const match = line.match(/step\s*\d+:\s*place\s+(\d+x\d+)\s+(\w+)\s+(\w+)\s+at\s+\((\d+),\s*(\d+),\s*(\d+)\),\s*(horizontal|vertical)/i);
+      const match = line.match(
+        /step\s*\d+:\s*place\s+(\d+x\d+)\s+brick\s+(\w+)\s+at\s+\((\d+),\s*(\d+),\s*(\d+)\),\s*(horizontal|vertical)/i
+      );
       if (match) {
         const [, size, color, x, y, z, orientation] = match;
+
         parts.push({
           size,
-          color,
+          color: color.toLowerCase(),
           x: parseInt(x, 10),
           y: parseInt(y, 10),
           z: parseInt(z, 10),
-          orientation: orientation.toUpperCase()
+          orientation: orientation.toLowerCase()
         });
-        console.log(line);
+        console.log('Parsed part:', { size, color, x, y, z, orientation });
         buildStepsList.push(line.trim());
       } else if (line.trim() && !line.startsWith('Step')) {
         // Capture first non-step non-empty line as description
