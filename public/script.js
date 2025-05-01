@@ -169,11 +169,11 @@ async function renderGridFromPlacement(parts) {
     const { size, color, x, y, z, orientation } = part;
     if (z > selectedLayer) continue;
 
+    const [studWidth, studLength] = getOrientedSize(size, orientation);
+
     if (isPlacementSupported(x, y, z, size, orientation, occupancyGrid) &&
        isPlacementClear(x, y, z, size, orientation, occupancyGrid)) {
       topBricks.push({ x, y, z, size, color, orientation });
-
-      const [studWidth, studLength] = getOrientedSize(size, orientation);
 
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
@@ -349,9 +349,7 @@ document.getElementById('refine-button').addEventListener('click', async (e) => 
   await handleRefine();
 });
 
-document.getElementById('layer-select').addEventListener('change', (e) => {
-  selectedLayer = parseInt(e.target.value, 10);
-  if (currentParts.length > 0) {
-    renderGridFromPlacement(currentParts);
-  }
+document.getElementById('layer-select').addEventListener('change', (event) => {
+  selectedLayer = parseInt(event.target.value);
+  renderGridFromPlacement(currentParts);
 });
