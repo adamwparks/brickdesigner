@@ -4,8 +4,9 @@ import { getOrientedSize } from './brickUtils.js';
 // === GLOBAL STATE ===
 let buildSteps = "";
 let rejectedBricks = [];
-let selectedLayer = 99; // Show all by default
+let selectedLayer = 0; // Show all by default
 let currentParts = [];  // Store current parts globally for dropdown use
+document.getElementById('layer-select').value = selectedLayer;
 
 // === CORE FUNCTIONS ===
 
@@ -149,6 +150,17 @@ async function renderGridFromPlacement(parts) {
 
   const gridCanvas = document.getElementById('grid-canvas');
   gridCanvas.innerHTML = "";
+
+  const maxLayer = Math.max(...parts.map(p => p.z));
+  const layerSelect = document.getElementById('layer-select');
+  layerSelect.innerHTML = '';
+
+  for (let i = 0; i <= maxLayer; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = `Layer ${i}`;
+    layerSelect.appendChild(option);
+  }
 
   const gridSize = 10;
   const studSizePx = 30;
