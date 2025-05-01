@@ -232,8 +232,7 @@ async function renderGridFromPlacement(parts) {
 
   for (const brick of topBricks) {
     if (brick.z > selectedLayer) continue;
-    const { x, y, size, orientation } = brick;
-    const orientationNorm = orientation.toUpperCase();
+    const { x, y, size, orientationNorm } = brick;
     const [studWidth, studLength] = getOrientedSize(size, orientationNorm);
 
     const pixelWidth = studWidth * studSizePx + (studWidth - 1) * gap;
