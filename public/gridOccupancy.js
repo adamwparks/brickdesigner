@@ -53,30 +53,28 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
 
 // Mark brick studs as occupied in the grid
 export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGrid) {
-  for (let dx = 0; dx < width; dx++) {
-    for (let dy = 0; dy < length; dy++) {
-      let nx = x;
-      let ny = y;
+  // Swap width and length if vertical
+  let w = width;
+  let l = length;
+  if (orientation === 'VERTICAL') {
+    [w, l] = [l, w];
+  }
 
-      if (orientation === 'HORIZONTAL') {
-        nx = x + dx;
-        ny = y;
-      } else if (orientation === 'VERTICAL') {
-        nx = x;
-        ny = y + dx;
-      }
+  for (let dx = 0; dx < w; dx++) {
+    for (let dy = 0; dy < l; dy++) {
+      const gx = x + dx;
+      const gy = y + dy;
 
-      if (
-        nx >= 0 && ny >= 0 &&
-        nx < gridSize && ny < gridSize &&
-        occupancyGrid[nx] &&
-        occupancyGrid[nx][ny]
-      ) {
-        occupancyGrid[nx][ny][z] = true;
-      }      
+      // Ensure grid cell exists
+      if (!occupancyGrid[gx]) occupancyGrid[gx] = [];
+      if (!occupancyGrid[gx][gy]) occupancyGrid[gx][gy] = [];
+      
+      // Mark this cell as occupied at the given layer (z)
+      occupancyGrid[gx][gy][z] = true;
     }
   }
 }
+
 
 export function isPlacementClear(x, y, z, width, length, orientation, occupancyGrid) {
   // Swap width and length if vertical
