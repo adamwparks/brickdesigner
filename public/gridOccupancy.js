@@ -25,9 +25,9 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
 
       if (orientation === 'HORIZONTAL') {
         nx = x + dx;
-        ny = y + dy;
+        ny = y;
       } else if (orientation === 'VERTICAL') {
-        nx = x + dy;
+        nx = x;
         ny = y + dx;
       }
 
@@ -60,9 +60,9 @@ export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGr
 
       if (orientation === 'HORIZONTAL') {
         nx = x + dx;
-        ny = y + dy;
+        ny = y;
       } else if (orientation === 'VERTICAL') {
-        nx = x + dy;
+        nx = x;
         ny = y + dx;
       }
 
@@ -85,9 +85,9 @@ export function isPlacementClear(x, y, z, width, length, orientation, occupancyG
 
       if (orientation === 'HORIZONTAL') {
         nx = x + dx;
-        ny = y + dy;
+        ny = y;
       } else if (orientation === 'VERTICAL') {
-        nx = x + dy;
+        nx = x;
         ny = y + dx;
       }
 

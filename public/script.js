@@ -178,12 +178,13 @@ async function renderGridFromPlacement(parts) {
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
           let gx = x, gy = y;
-          if (orientation === 'HORIZONTAL') {
-            nx = x + dx;
-            ny = y + dy;
-          } else if (orientation === 'VERTICAL') {
-            nx = x + dy;
-            ny = y + dx;
+
+          if (orientation === 'horizontal') {
+            gx = x + dx; // width extends along X
+            gy = y;
+          } else if (orientation === 'vertical') {
+            gx = x;
+            gy = y + dy; // length extends along Y
           }
 
           if (
