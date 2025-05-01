@@ -21,7 +21,6 @@ Rules:
 - Each brick must be given a direction of "horizontal" if it's facing east-west or "vertical" if it's facing north-south.
 - Bricks must fully fit inside the 10x10 grid — no overhanging.
 - Each brick must be adjacent or connected to another brick.
-- The final build must use at least **3 distinct vertical layers (z-values)**. Bricks should be placed on **at least 3 different "z" levels** to create vertical structure and dimension.
 - The final creation must resemble a real world object.
 - Brick types allowed: 2x4, 1x2, 4x4, 2x6, 1x4 only.
 - At z=0 (ground level), placement is always supported.
