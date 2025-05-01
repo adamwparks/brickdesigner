@@ -234,8 +234,16 @@ async function renderGridFromPlacement(parts) {
     if (brick.z > selectedLayer) continue;
     const { x, y, studWidth, studLength } = brick;
 
-    const pixelWidth = studWidth * studSizePx + (studWidth - 1) * gap;
-    const pixelHeight = studLength * studSizePx + (studLength - 1) * gap;
+    let pixelWidth, pixelHeight;
+
+    if (brick.orientation === 'HORIZONTAL') {
+      pixelWidth = brick.studWidth * studSizePx + (brick.studWidth - 1) * gap;
+      pixelHeight = brick.studLength * studSizePx + (brick.studLength - 1) * gap;
+    } else {
+      // VERTICAL: flip width and length for screen rendering
+      pixelWidth = brick.studLength * studSizePx + (brick.studLength - 1) * gap;
+      pixelHeight = brick.studWidth * studSizePx + (brick.studWidth - 1) * gap;
+    }
 
     const outline = document.createElement('div');
     outline.style.position = 'absolute';
