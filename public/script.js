@@ -177,18 +177,26 @@ async function renderGridFromPlacement(parts) {
 
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
-          const gx = x + dx;
-          const gy = y + dy;
-
+          let gx = x;
+          let gy = y;
+      
+          if (orientationNorm === 'HORIZONTAL') {
+            gx = x + dx;
+            gy = y + dy;
+          } else if (orientationNorm === 'VERTICAL') {
+            gx = x + dy;
+            gy = y + dx;
+          }
+      
           if (
             gx >= 0 && gx < gridSize &&
             gy >= 0 && gy < gridSize &&
             (!topStudsMap[gx][gy] || topStudsMap[gx][gy].z <= z)
           ) {
-            topStudsMap[gx][gy] = { color, z, studWidth, studLength, orientation };
+            topStudsMap[gx][gy] = { color, z, studWidth, studLength, orientation: orientationNorm };
           }
         }
-      }
+      }      
     } else {
       rejectedBricks.push({
         step: parts.indexOf(part) + 1,
