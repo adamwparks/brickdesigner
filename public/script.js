@@ -175,11 +175,13 @@ async function renderGridFromPlacement(parts) {
       markPlacement(x, y, z, size, orientationNorm, occupancyGrid);
       topBricks.push({ x, y, z, size, color, orientationNorm, studWidth, studLength });
 
-      // draw outline (grid-based)
+      // draw outline
+      const [outlineWidth, outlineLength] = getOrientedSize(size, orientationNorm);
+
       const outline = document.createElement('div');
       outline.className = 'border-2 border-dashed border-gray-400 rounded-lg pointer-events-none';
-      outline.style.gridRow = `${y + 1} / span ${studLength}`;
-      outline.style.gridColumn = `${x + 1} / span ${studWidth}`;
+      outline.style.gridRow = `${y + 1} / span ${outlineLength}`;
+      outline.style.gridColumn = `${x + 1} / span ${outlineWidth}`;
       outline.style.width = '100%';
       outline.style.height = '100%';
       outline.style.boxSizing = 'border-box';
