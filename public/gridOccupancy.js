@@ -73,6 +73,8 @@ export function markBrickOnGrid(x, y, z, size, orientation, occupancyGrid) {
 
 export function isPlacementClear(x, y, z, size, orientation, occupancyGrid) {
   const [w, l] = getOrientedSize(size, orientation);
+  const gridWidth = occupancyGrid.length;
+  const gridHeight = occupancyGrid[0]?.length ?? 0;
   if (x + w > gridWidth || y + l > gridHeight) return false; // Out of bounds  
 
   for (let dx = 0; dx < w; dx++) {
