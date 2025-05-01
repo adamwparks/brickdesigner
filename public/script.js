@@ -184,7 +184,7 @@ async function renderGridFromPlacement(parts) {
             gy >= 0 && gy < gridSize &&
             (!topStudsMap[gx][gy] || topStudsMap[gx][gy].z <= z)
           ) {
-            topStudsMap[gx][gy] = { color, z, size, orientation };
+            topStudsMap[gx][gy] = { color, z, studWidth, studLength, orientation };
           }
         }
       }
@@ -207,7 +207,7 @@ async function renderGridFromPlacement(parts) {
       if (stud) {
         const dot = document.createElement('div');
         dot.className = `${colorNameToTailwind(stud.color)} w-4 h-4 rounded-full border border-gray-500 transition-all duration-300`;
-        dot.title = `${stud.size} brick facing ${stud.orientation}, z=${stud.z}`;
+        dot.title = `${stud.studWidth}x${stud.studLength} brick facing ${stud.orientation}, z=${stud.z}`;
         cell.appendChild(dot);
       }
       gridCanvas.appendChild(cell);
