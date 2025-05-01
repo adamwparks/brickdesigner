@@ -13,28 +13,23 @@ export function initializeGrid() {
 }
 
 // Check if placement is supported (at least one stud supported below)
-export function isPlacementSupported(x, y, z, size, orientation, occupancyGrid) {
+export function isPlacementClear(x, y, z, size, orientation, occupancyGrid) {
   const [w, l] = getOrientedSize(size, orientation);
+  const gridWidth = occupancyGrid.length;
+  const gridHeight = occupancyGrid[0]?.length ?? 0;
 
-  // Base layer is always supported
-  if (z === 0) return true;
+  if (x + w > gridWidth || y + l > gridHeight || z > 9) return false;
 
   for (let dx = 0; dx < w; dx++) {
     for (let dy = 0; dy < l; dy++) {
       const gx = x + dx;
       const gy = y + dy;
-
-      // Check for a brick directly underneath
-      if (occupancyGrid[gx]?.[gy]?.[z - 1]) {
-        return true;
-      }
+      if (!occupancyGrid[gx]?.[gy]) return false;
+      if (occupancyGrid[gx][gy][z]) return false;
     }
   }
-
-  // No studs below at any location
-  return false;
+  return true;
 }
-
 
 export function isPlacementSupported(x, y, z, size, orientation, occupancyGrid) {
   const [w, l] = getOrientedSize(size, orientation);
