@@ -3,6 +3,12 @@
 const gridSize = 10;
 const gridHeight = 10;
 
+// orientation logic
+export function getOrientedSize(sizeStr, orientation) {
+  const [width, length] = sizeStr.split('x').map(Number);
+  return getOrientedDimensions(width, length, orientation);
+}
+
 // Initialize a 3D occupancy grid
 export function initializeGrid() {
   return Array.from({ length: gridSize }, () =>
@@ -53,12 +59,7 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
 
 // Mark brick studs as occupied in the grid
 export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGrid) {
-  // Swap width and length if vertical
-  let w = width;
-  let l = length;
-  if (orientation === 'VERTICAL') {
-    [w, l] = [l, w];
-  }
+  const [w, l] = getOrientedDimensions(width, length, orientation);
 
   for (let dx = 0; dx < w; dx++) {
     for (let dy = 0; dy < l; dy++) {
@@ -77,12 +78,8 @@ export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGr
 
 
 export function isPlacementClear(x, y, z, width, length, orientation, occupancyGrid) {
-  // Swap width and length if vertical
-  let w = width;
-  let l = length;
-  if (orientation === 'VERTICAL') {
-    [w, l] = [l, w];
-  }
+  const [w, l] = getOrientedDimensions(width, length, orientation);
+  if (x + w > gridWidth || y + l > gridHeight) return false; // Out of bounds  
 
   for (let dx = 0; dx < w; dx++) {
     for (let dy = 0; dy < l; dy++) {

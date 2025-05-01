@@ -1,4 +1,4 @@
-import { initializeGrid, isPlacementSupported, markBrickOnGrid, isPlacementClear } from './gridOccupancy.js';
+import { initializeGrid, isPlacementSupported, markBrickOnGrid, isPlacementClear, getOrientedSize } from './gridOccupancy.js';
 
 // === GLOBAL STATE ===
 let buildSteps = "";
@@ -175,18 +175,13 @@ async function renderGridFromPlacement(parts) {
       markBrickOnGrid(x, y, z, studWidth, studLength, orientation, occupancyGrid);
       topBricks.push({ x, y, z, size, color, orientation });
 
+      const [studWidth, studLength] = getOrientedSize(size, orientation);
+
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
-          let gx = x, gy = y;
-
-          if (orientation === 'horizontal') {
-            gx = x + dx; // width extends along X
-            gy = y;
-          } else if (orientation === 'vertical') {
-            gx = x;
-            gy = y + dy; // length extends along Y
-          }
-
+          const gx = x + dx;
+          const gy = y + dy;
+      
           if (
             gx >= 0 && gx < gridSize &&
             gy >= 0 && gy < gridSize &&
@@ -228,19 +223,9 @@ async function renderGridFromPlacement(parts) {
   for (const brick of topBricks) {
     if (brick.z > selectedLayer) continue; // show everything ≤ selectedLayer
 
-    const [studWidth, studLength] = brick.size.split('x').map(Number);
-    let gx = brick.x;
-    let gy = brick.y;
-    
-    let pixelWidth, pixelHeight;
-    
-    if (brick.orientation === 'horizontal') {
-      pixelWidth = studLength * studSizePx;
-      pixelHeight = studWidth * studSizePx;
-    } else if (brick.orientation === 'VERTICAL') {
-      pixelWidth = studLength * studSizePx;
-      pixelHeight = studWidth * studSizePx;
-    }
+    const [studWidth, studLength] = getOrientedSize(brick.size, brick.orientation);
+    const pixelWidth = studWidth * studSizePx;
+    const pixelHeight = studLength * studSizePx;
 
     const outline = document.createElement('div');
     outline.style.position = 'absolute';
