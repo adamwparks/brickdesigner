@@ -205,8 +205,11 @@ async function renderGridFromPlacement(parts) {
     }
   }
 
+  console.log('Selected Layer:', selectedLayer);
+  console.log('Bricks to render (filtered):', parts.filter(p => p.z <= selectedLayer));
+
   for (const brick of topBricks) {
-    if (brick.z !== selectedLayer) continue;
+    if (brick.z > selectedLayer) continue; // show everything ≤ selectedLayer
 
     const [studWidth, studLength] = brick.size.split('x').map(Number);
     let pixelWidth = studWidth * studSizePx;
@@ -273,6 +276,7 @@ function populateLayerDropdown(parts) {
 
   // Find the highest Z value
   const maxZ = parts.reduce((max, part) => Math.max(max, part.z), 0);
+
   layerSelect.innerHTML = '';
 
   for (let z = 0; z <= maxZ; z++) {
@@ -282,7 +286,7 @@ function populateLayerDropdown(parts) {
     layerSelect.appendChild(option);
   }
 
-  selectedLayer = maxZ; // default to top
+  selectedLayer = maxZ;
   layerSelect.value = maxZ;
 };
 
