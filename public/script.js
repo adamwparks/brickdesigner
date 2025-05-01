@@ -163,16 +163,17 @@ async function renderGridFromPlacement(parts) {
 
   for (const part of parts) {
     const { size, color, x, y, z, orientation } = part;
+    const orientationNorm = orientation.toUpperCase();
     if (z > selectedLayer) continue;
 
-    const [studWidth, studLength] = getOrientedSize(size, orientation);
+    const [studWidth, studLength] = getOrientedSize(size, orientationNorm);
 
-    const clear = isPlacementClear(x, y, z, size, orientation, occupancyGrid);
-    const supported = isPlacementSupported(x, y, z, size, orientation, occupancyGrid);
+    const clear = isPlacementClear(x, y, z, size, orientationNorm, occupancyGrid);
+    const supported = isPlacementSupported(x, y, z, size, orientationNorm, occupancyGrid);
 
     if (clear && supported) {
-      markPlacement(x, y, z, size, orientation, occupancyGrid);
-      topBricks.push({ x, y, z, size, color, orientation, studWidth, studLength });
+      markPlacement(x, y, z, size, orientationNorm, occupancyGrid);
+      topBricks.push({ x, y, z, size, color, orientationNorm, studWidth, studLength });
 
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
