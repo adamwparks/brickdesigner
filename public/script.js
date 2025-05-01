@@ -85,10 +85,23 @@ function parseBuildSteps(text) {
       continue;
     }
 
+    console.log('[Line]', line); // See what line we're evaluating
+
+    if (line.toLowerCase().startsWith('step')) {
+      console.log('[Step line]', line);
+    }
+
     if (!inPartsSection) {
       const match = line.match(
         /step\s*\d+:\s*place\s+(\d+x\d+)\s+brick\s+(\w+)\s+at\s+\((\d+),\s*(\d+),\s*(\d+)\),\s*(horizontal|vertical)/i
       );
+
+      if (match) {
+        console.log('[MATCHED]', match);
+      } else {
+        console.warn('⚠️ Did not match step line:', line);
+      }
+      
       if (match) {
         const [, size, color, x, y, z, orientation] = match;
 
