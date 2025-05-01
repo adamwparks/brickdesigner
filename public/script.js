@@ -175,6 +175,22 @@ async function renderGridFromPlacement(parts) {
       markPlacement(x, y, z, size, orientationNorm, occupancyGrid);
       topBricks.push({ x, y, z, size, color, orientationNorm, studWidth, studLength });
 
+      // draw outline
+      const pixelWidth = studWidth * studSizePx + (studWidth - 1) * gap;
+      const pixelHeight = studLength * studSizePx + (studLength - 1) * gap;
+
+      const outline = document.createElement('div');
+      outline.style.position = 'absolute';
+      outline.style.left = `${x * (studSizePx + gap)}px`;
+      outline.style.top = `${y * (studSizePx + gap)}px`;
+      outline.style.width = `${pixelWidth}px`;
+      outline.style.height = `${pixelHeight}px`;
+      outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
+      outline.style.borderRadius = '6px';
+      outline.style.pointerEvents = 'none';
+      outline.style.boxSizing = 'border-box';
+      gridCanvas.appendChild(outline);
+
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
           let gx = x;
