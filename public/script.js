@@ -176,15 +176,23 @@ async function renderGridFromPlacement(parts) {
       topBricks.push({ x, y, z, size, color, orientationNorm, studWidth, studLength });
 
       // draw outline
-      const [outlineWidth, outlineLength] = getOrientedSize(size, orientationNorm);
+      const pixelWidth = studWidth * studSizePx + (studWidth - 1) * gap;
+      const pixelHeight = studLength * studSizePx + (studLength - 1) * gap;
 
       const outline = document.createElement('div');
-      outline.className = 'border-2 border-dashed border-gray-400 rounded-lg pointer-events-none';
-      outline.style.gridRow = `${y + 1} / span ${outlineLength}`;
-      outline.style.gridColumn = `${x + 1} / span ${outlineWidth}`;
-      outline.style.width = '100%';
-      outline.style.height = '100%';
+      outline.style.position = 'absolute';
+      outline.style.left = `${x * (studSizePx + gap)}px`;
+      outline.style.top = `${y * (studSizePx + gap)}px`;
+      outline.style.width = `${pixelWidth}px`;
+      outline.style.height = `${pixelHeight}px`;
+      outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
+      outline.style.borderRadius = '6px';
+      outline.style.pointerEvents = 'none';
       outline.style.boxSizing = 'border-box';
+
+      outline.style.gridRow = `${y + 1} / span ${studLength}`;
+      outline.style.gridColumn = `${x + 1} / span ${studWidth}`;
+
       gridCanvas.appendChild(outline);
 
       for (let dx = 0; dx < studWidth; dx++) {
