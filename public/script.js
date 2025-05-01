@@ -1,4 +1,5 @@
-import { initializeGrid, isPlacementSupported, markBrickOnGrid, isPlacementClear, getOrientedDimensions } from './gridOccupancy.js';
+import { initializeGrid, isPlacementSupported, markBrickOnGrid, isPlacementClear } from './gridOccupancy.js';
+import { getOrientedSize } from './brickUtils.js';
 
 // === GLOBAL STATE ===
 let buildSteps = "";
@@ -172,7 +173,7 @@ async function renderGridFromPlacement(parts) {
        isPlacementClear(x, y, z, size, orientation, occupancyGrid)) {
       topBricks.push({ x, y, z, size, color, orientation });
 
-      const [studWidth, studLength] = getOrientedDimensions(size, orientation);
+      const [studWidth, studLength] = getOrientedSize(size, orientation);
 
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
@@ -220,7 +221,7 @@ async function renderGridFromPlacement(parts) {
   for (const brick of topBricks) {
     if (brick.z > selectedLayer) continue; // show everything ≤ selectedLayer
 
-    const [studWidth, studLength] = getOrientedDimensions(brick.size, brick.orientation);
+    const [studWidth, studLength] = getOrientedSize(brick.size, brick.orientation);
     const pixelWidth = studWidth * studSizePx;
     const pixelHeight = studLength * studSizePx;
 
