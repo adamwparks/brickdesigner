@@ -167,13 +167,12 @@ async function renderGridFromPlacement(parts) {
 
     const [studWidth, studLength] = getOrientedSize(size, orientation);
 
-    if (
-      isPlacementClear(x, y, z, size, orientation, occupancyGrid) &&
-      isPlacementSupported(x, y, z, size, orientation, occupancyGrid)
-    )
-     {
+    const clear = isPlacementClear(x, y, z, size, orientation, occupancyGrid);
+    const supported = isPlacementSupported(x, y, z, size, orientation, occupancyGrid);
+
+    if (clear && supported) {
       markPlacement(x, y, z, size, orientation, occupancyGrid);
-      topBricks.push({ x, y, z, size, color, orientation });
+      topBricks.push({ x, y, z, size, color, orientation, studWidth, studLength });
 
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
@@ -193,7 +192,7 @@ async function renderGridFromPlacement(parts) {
       rejectedBricks.push({
         step: parts.indexOf(part) + 1,
         ...part,
-        reason: 'placement blocked or out-of-bounds'
+        reason: !clear ? 'blocked or out-of-bounds' : 'not supported underneath'
       });
       console.warn('Rejected brick at step', parts.indexOf(part) + 1, part);
     }
@@ -217,17 +216,15 @@ async function renderGridFromPlacement(parts) {
 
   for (const brick of topBricks) {
     if (brick.z > selectedLayer) continue;
-    // const [studWidth, studLength] = getOrientedSize(brick.size, brick.orientation);
-    const gx = brick.x;
-    const gy = brick.y;
+    const { x, y, studWidth, studLength } = brick;
 
     const pixelWidth = studWidth * studSizePx + (studWidth - 1) * gap;
     const pixelHeight = studLength * studSizePx + (studLength - 1) * gap;
 
     const outline = document.createElement('div');
     outline.style.position = 'absolute';
-    outline.style.left = `${gx * (studSizePx + gap)}px`;
-    outline.style.top = `${gy * (studSizePx + gap)}px`;
+    outline.style.left = `${x * (studSizePx + gap)}px`;
+    outline.style.top = `${y * (studSizePx + gap)}px`;
     outline.style.width = `${pixelWidth}px`;
     outline.style.height = `${pixelHeight}px`;
     outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';

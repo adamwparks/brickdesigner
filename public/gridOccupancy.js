@@ -36,22 +36,25 @@ export function isPlacementSupported(x, y, z, size, orientation, occupancyGrid) 
 }
 
 
-export function isPlacementClear(x, y, z, size, orientation, occupancyGrid) {
+export function isPlacementSupported(x, y, z, size, orientation, occupancyGrid) {
   const [w, l] = getOrientedSize(size, orientation);
-  const gridWidth = occupancyGrid.length;
-  const gridHeight = occupancyGrid[0]?.length ?? 0;
-
-  if (x + w > gridWidth || y + l > gridHeight) return false;
+  if (z === 0) return true;
 
   for (let dx = 0; dx < w; dx++) {
     for (let dy = 0; dy < l; dy++) {
       const gx = x + dx;
       const gy = y + dy;
-      if (!occupancyGrid[gx]?.[gy]) return false;
-      if (occupancyGrid[gx][gy][z]) return false;
+
+      if (
+        gx >= 0 && gx < occupancyGrid.length &&
+        gy >= 0 && gy < occupancyGrid[0]?.length &&
+        occupancyGrid[gx]?.[gy]?.[z - 1]
+      ) {
+        return true;
+      }
     }
   }
-  return true;
+  return false;
 }
 
 export function markPlacement(x, y, z, size, orientation, occupancyGrid) {
