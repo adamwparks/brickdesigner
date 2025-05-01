@@ -229,22 +229,23 @@ async function renderGridFromPlacement(parts) {
     if (brick.z > selectedLayer) continue; // show everything ≤ selectedLayer
 
     const [studWidth, studLength] = brick.size.split('x').map(Number);
-    let pixelWidth = studWidth * studSizePx;
-    let pixelHeight = studLength * studSizePx;
     let gx = brick.x;
     let gy = brick.y;
-
-    if (brick.orientation === 'VERTICAL') {
+    
+    let pixelWidth, pixelHeight;
+    
+    if (brick.orientation === 'horizontal') {
+      pixelWidth = studLength * studSizePx;
+      pixelHeight = studWidth * studSizePx;
+    } else if (brick.orientation === 'vertical') {
       pixelWidth = studWidth * studSizePx;
       pixelHeight = studLength * studSizePx;
-    } else {
-      [pixelWidth, pixelHeight] = [pixelHeight, pixelWidth];
     }
 
     const outline = document.createElement('div');
     outline.style.position = 'absolute';
-    outline.style.left = `${gx * studSizePx + 8}px`;
-    outline.style.top = `${gy * studSizePx + 8}px`;
+    outline.style.left = `${gx * studSizePx}px`;
+    outline.style.top = `${gy * studSizePx}px`;    
     outline.style.width = `${pixelWidth}px`;
     outline.style.height = `${pixelHeight}px`;
     outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
