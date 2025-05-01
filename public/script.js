@@ -198,8 +198,8 @@ async function renderGridFromPlacement(parts) {
     }
   }
 
-  for (let row = 0; row < gridSize; row++) {
-    for (let col = 0; col < gridSize; col++) {
+  for (let col = 0; col < gridSize; col++) {
+    for (let row = 0; row < gridSize; row++) {
       const cell = document.createElement('div');
       cell.className = 'relative w-full h-full flex items-center justify-center bg-white border border-gray-200';
 
