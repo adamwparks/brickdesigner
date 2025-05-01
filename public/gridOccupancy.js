@@ -79,37 +79,34 @@ export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGr
 }
 
 export function isPlacementClear(x, y, z, width, length, orientation, occupancyGrid) {
-  for (let dx = 0; dx < width; dx++) {
-    for (let dy = 0; dy < length; dy++) {
-      let gx = x, gy = y;
+  // Swap width and length if vertical
+  let w = width;
+  let l = length;
+  if (orientation === 'VERTICAL') {
+    [w, l] = [l, w];
+  }
 
-      if (orientation === 'HORIZONTAL') {
-        nx = x + dx;
-        ny = y;
-      } else if (orientation === 'VERTICAL') {
-        nx = x;
-        ny = y + dx;
-      }
+  for (let dx = 0; dx < w; dx++) {
+    for (let dy = 0; dy < l; dy++) {
+      const gx = x + dx;
+      const gy = y + dy;
 
-      if (
-        gx < 0 || gx >= occupancyGrid.length ||
-        gy < 0 || gy >= occupancyGrid[0].length
-      ) {
-        return false;
-      }
-
+      // Bounds check
       if (
         gx < 0 || gy < 0 ||
-        gx >= occupancyGrid.length || gy >= occupancyGrid[0].length ||
-        !occupancyGrid[gx] || !occupancyGrid[gx][gy]
+        gx >= occupancyGrid.length ||
+        gy >= occupancyGrid[0].length
       ) {
         return false;
       }
-      
+
+      // Cell existence and occupancy check
+      if (!occupancyGrid[gx]?.[gy]?.[z] === undefined) continue;
       if (occupancyGrid[gx][gy][z]) {
-        return false; // Brick already occupies this spot
-      }      
+        return false;
+      }
     }
   }
+
   return true;
 }

@@ -237,9 +237,9 @@ async function renderGridFromPlacement(parts) {
     if (brick.orientation === 'horizontal') {
       pixelWidth = studLength * studSizePx;
       pixelHeight = studWidth * studSizePx;
-    } else if (brick.orientation === 'vertical') {
-      pixelWidth = studWidth * studSizePx;
-      pixelHeight = studLength * studSizePx;
+    } else if (brick.orientation === 'VERTICAL') {
+      pixelWidth = studLength * studSizePx;
+      pixelHeight = studWidth * studSizePx;
     }
 
     const outline = document.createElement('div');
