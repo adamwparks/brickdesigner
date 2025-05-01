@@ -240,28 +240,6 @@ async function renderGridFromPlacement(parts) {
   
       gridCanvas.appendChild(cell);
     }
-  }  
-
-  for (const brick of topBricks) {
-    if (brick.z > selectedLayer) continue;
-    const { x, y, size, orientationNorm } = brick;
-    const [studWidth, studLength] = getOrientedSize(size, orientationNorm);
-
-    const pixelWidth = studWidth * studSizePx + (studWidth - 1) * gap;
-    const pixelHeight = studLength * studSizePx + (studLength - 1) * gap;
-    
-    const outline = document.createElement('div');
-    outline.style.position = 'absolute';
-    outline.style.left = `${x * (studSizePx + gap)}px`;
-    outline.style.top = `${y * (studSizePx + gap)}px`;
-    outline.style.width = `${pixelWidth}px`;
-    outline.style.height = `${pixelHeight}px`;
-    outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
-    outline.style.borderRadius = '6px';
-    outline.style.pointerEvents = 'none';
-    outline.style.boxSizing = 'border-box';
-
-    gridCanvas.appendChild(outline);
   }
 
   const refineButton = document.getElementById('refine-button');
