@@ -22,12 +22,14 @@ Rules:
 - Bricks must fully fit inside the 10x10 grid — no overhanging.
 - Each brick must be adjacent or connected to another brick.
 - The final creation must resemble a real world object.
-- Brick types allowed: 2x4, 1x2, 4x4, 2x6, 1x4 only.
+- Brick types allowed: 2x4, 1x2, 4x4, 2x6, 1x4, 1x1 only.
 - At z=0 (ground level), placement is always supported.
 - At z>0, you must ensure at least ONE stud underneath the brick footprint is supported by a brick or plate directly underneath.
 - Larger bricks (over 4 studs long) should preferably have 2+ supporting studs if possible.
 - Do NOT place floating bricks.
 - Only use standard top-down stud stacking — no side studs.
+- The entire build must fit within the 10x10x10 grid. Bricks may not be placed such that x + width > 10, y + length > 10, or z > 9.
+- Spread the build footprint across the grid. Avoid placing all bricks in a line or stack. Use a variety of positions and orientations to create a stable, interesting structure.
 
 Tracking:
 You are simulating a 10x10x10 3D grid. As you place each brick, update your virtual grid to mark where bricks are now occupied. Before each new step:
