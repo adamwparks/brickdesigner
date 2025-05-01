@@ -222,18 +222,18 @@ async function renderGridFromPlacement(parts) {
     if (brick.z > selectedLayer) continue; // show everything ≤ selectedLayer
 
     const [studWidth, studLength] = getOrientedSize(brick.size, brick.orientation);
-    const pixelWidth = studWidth * studSizePx;
-    const pixelHeight = studLength * studSizePx;
 
     const gx = brick.x;
     const gy = brick.y;
 
+    const gridGapPx = parseInt(getComputedStyle(gridCanvas).gap || '2');
+
     const outline = document.createElement('div');
     outline.style.position = 'absolute';
-    outline.style.left = `${gx * studSizePx}px`;
-    outline.style.top = `${gy * studSizePx}px`;    
-    outline.style.width = `${pixelWidth}px`;
-    outline.style.height = `${pixelHeight}px`;
+    outline.style.left = `${gx * (studSizePx + gridGapPx)}px`;
+    outline.style.top = `${gy * (studSizePx + gridGapPx)}px`;
+    outline.style.width = `${studWidth * studSizePx + (studWidth - 1) * gridGapPx}px`;
+    outline.style.height = `${studLength * studSizePx + (studLength - 1) * gridGapPx}px`;
     outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
     outline.style.borderRadius = '6px';
     outline.style.pointerEvents = 'none';
