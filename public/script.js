@@ -225,6 +225,9 @@ async function renderGridFromPlacement(parts) {
     const pixelWidth = studWidth * studSizePx;
     const pixelHeight = studLength * studSizePx;
 
+    const gx = brick.x;
+    const gy = brick.y;
+
     const outline = document.createElement('div');
     outline.style.position = 'absolute';
     outline.style.left = `${gx * studSizePx}px`;
