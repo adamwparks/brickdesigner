@@ -1,10 +1,14 @@
 export function getOrientedDimensions(width, length, orientation) {
-  if (orientation?.toUpperCase() === 'HORIZONTAL') {
-    return [width, length];  // width = X, length = Y
-  } else if (orientation?.toUpperCase() === 'VERTICAL') {
-    return [length, width];  // width = Y, length = X
+  const o = orientation?.toUpperCase();
+
+  // 'HORIZONTAL' = width across X, length down Y (default)
+  // 'VERTICAL' = rotate 90° → width becomes Y, length becomes X
+  if (o === 'VERTICAL') {
+    return [length, width];  // rotate
+  } else if (o === 'HORIZONTAL') {
+    return [width, length];  // default
   } else {
-    throw new Error('Unknown orientation: ' + orientation);
+    throw new Error(`Unknown orientation: ${orientation}`);
   }
 }
 

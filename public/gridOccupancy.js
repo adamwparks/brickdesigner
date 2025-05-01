@@ -51,53 +51,33 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
   return supportedStuds >= 1;
 }
 
-// Mark brick studs as occupied in the grid
-export function markBrickOnGrid(x, y, z, size, orientation, occupancyGrid) {
-  const [w, l] = getOrientedSize(size, orientation);
-
-  for (let dx = 0; dx < w; dx++) {
-    for (let dy = 0; dy < l; dy++) {
-      const gx = x + dx;
-      const gy = y + dy;
-
-      // Ensure grid cell exists
-      if (!occupancyGrid[gx]) occupancyGrid[gx] = [];
-      if (!occupancyGrid[gx][gy]) occupancyGrid[gx][gy] = [];
-      
-      // Mark this cell as occupied at the given layer (z)
-      occupancyGrid[gx][gy][z] = true;
-    }
-  }
-}
-
-
 export function isPlacementClear(x, y, z, size, orientation, occupancyGrid) {
   const [w, l] = getOrientedSize(size, orientation);
   const gridWidth = occupancyGrid.length;
   const gridHeight = occupancyGrid[0]?.length ?? 0;
-  if (x + w > gridWidth || y + l > gridHeight) return false; // Out of bounds  
+
+  if (x + w > gridWidth || y + l > gridHeight) return false;
 
   for (let dx = 0; dx < w; dx++) {
     for (let dy = 0; dy < l; dy++) {
       const gx = x + dx;
       const gy = y + dy;
-
-      // Bounds check
-      if (
-        gx < 0 || gy < 0 ||
-        gx >= occupancyGrid.length ||
-        gy >= occupancyGrid[0].length
-      ) {
-        return false;
-      }
-
-      // Cell existence and occupancy check
-      if (!occupancyGrid[gx]?.[gy]?.[z] === undefined) continue;
-      if (occupancyGrid[gx][gy][z]) {
-        return false;
-      }
+      if (!occupancyGrid[gx]?.[gy]) return false;
+      if (occupancyGrid[gx][gy][z]) return false;
     }
   }
-
   return true;
+}
+
+export function markBrickOnGrid(x, y, z, size, orientation, occupancyGrid) {
+  const [w, l] = getOrientedSize(size, orientation);
+  for (let dx = 0; dx < w; dx++) {
+    for (let dy = 0; dy < l; dy++) {
+      const gx = x + dx;
+      const gy = y + dy;
+      if (!occupancyGrid[gx]) occupancyGrid[gx] = [];
+      if (!occupancyGrid[gx][gy]) occupancyGrid[gx][gy] = [];
+      occupancyGrid[gx][gy][z] = true;
+    }
+  }
 }

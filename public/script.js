@@ -147,33 +147,15 @@ async function parseAndRenderBuild(text) {
 async function renderGridFromPlacement(parts) {
   console.log('Rendering', parts.length, 'parts...');
   currentParts = parts;
-
   const gridCanvas = document.getElementById('grid-canvas');
-  gridCanvas.innerHTML = "";
-
-  const maxLayer = Math.max(...parts.map(p => p.z));
-  const layerSelect = document.getElementById('layer-select');
-  layerSelect.innerHTML = '';
-
-  for (let i = 0; i <= maxLayer; i++) {
-    const option = document.createElement('option');
-    option.value = i;
-    option.textContent = `Layer ${i}`;
-    layerSelect.appendChild(option);
-  }
-
-  layerSelect.value = selectedLayer;
+  gridCanvas.innerHTML = '';
 
   const gridSize = 10;
   const studSizePx = 30;
+  const gap = 2;
   rejectedBricks = [];
   const occupancyGrid = initializeGrid();
   const topBricks = [];
-
-  gridCanvas.style.display = 'grid';
-  gridCanvas.style.gridTemplateColumns = `repeat(${gridSize}, ${studSizePx}px)`;
-  gridCanvas.style.gridTemplateRows = `repeat(${gridSize}, ${studSizePx}px)`;
-  gridCanvas.style.gap = '2px';
 
   const topStudsMap = Array.from({ length: gridSize }, () =>
     Array.from({ length: gridSize }, () => null)
@@ -185,15 +167,15 @@ async function renderGridFromPlacement(parts) {
 
     const [studWidth, studLength] = getOrientedSize(size, orientation);
 
-    if (isPlacementSupported(x, y, z, size, orientation, occupancyGrid) &&
-       isPlacementClear(x, y, z, size, orientation, occupancyGrid)) {
+    if (isPlacementClear(x, y, z, size, orientation, occupancyGrid)) {
+      markPlacement(x, y, z, size, orientation, occupancyGrid);
       topBricks.push({ x, y, z, size, color, orientation });
 
       for (let dx = 0; dx < studWidth; dx++) {
         for (let dy = 0; dy < studLength; dy++) {
           const gx = x + dx;
           const gy = y + dy;
-      
+
           if (
             gx >= 0 && gx < gridSize &&
             gy >= 0 && gy < gridSize &&
@@ -207,8 +189,9 @@ async function renderGridFromPlacement(parts) {
       rejectedBricks.push({
         step: parts.indexOf(part) + 1,
         ...part,
-        reason: 'unsupported (floating or insufficient studs)',
+        reason: 'placement blocked or out-of-bounds'
       });
+      console.warn('Rejected brick at step', parts.indexOf(part) + 1, part);
     }
   }
 
@@ -224,30 +207,25 @@ async function renderGridFromPlacement(parts) {
         dot.title = `${stud.size} brick facing ${stud.orientation}, z=${stud.z}`;
         cell.appendChild(dot);
       }
-
       gridCanvas.appendChild(cell);
     }
   }
 
-  console.log('Selected Layer:', selectedLayer);
-  console.log('Bricks to render (filtered):', parts.filter(p => p.z <= selectedLayer));
-
   for (const brick of topBricks) {
-    if (brick.z > selectedLayer) continue; // show everything ≤ selectedLayer
-
+    if (brick.z > selectedLayer) continue;
     const [studWidth, studLength] = getOrientedSize(brick.size, brick.orientation);
-
     const gx = brick.x;
     const gy = brick.y;
 
-    const gridGapPx = parseInt(getComputedStyle(gridCanvas).gap || '2');
+    const pixelWidth = studWidth * studSizePx + (studWidth - 1) * gap;
+    const pixelHeight = studLength * studSizePx + (studLength - 1) * gap;
 
     const outline = document.createElement('div');
     outline.style.position = 'absolute';
-    outline.style.left = `${gx * (studSizePx + gridGapPx)}px`;
-    outline.style.top = `${gy * (studSizePx + gridGapPx)}px`;
-    outline.style.width = `${studWidth * studSizePx + (studWidth - 1) * gridGapPx}px`;
-    outline.style.height = `${studLength * studSizePx + (studLength - 1) * gridGapPx}px`;
+    outline.style.left = `${gx * (studSizePx + gap)}px`;
+    outline.style.top = `${gy * (studSizePx + gap)}px`;
+    outline.style.width = `${pixelWidth}px`;
+    outline.style.height = `${pixelHeight}px`;
     outline.style.border = '2px dashed rgba(0, 0, 0, 0.3)';
     outline.style.borderRadius = '6px';
     outline.style.pointerEvents = 'none';
@@ -258,7 +236,7 @@ async function renderGridFromPlacement(parts) {
 
   const refineButton = document.getElementById('refine-button');
   refineButton.style.display = rejectedBricks.length > 0 ? 'block' : 'none';
-};
+}
 
 function renderBuildSummary(partsList, description, buildStepsList) {
   const partsListContainer = document.getElementById('parts-list');
