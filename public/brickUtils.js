@@ -1,8 +1,11 @@
 export function getOrientedDimensions(width, length, orientation) {
-  if (orientation?.toUpperCase() === 'VERTICAL') {
-    return [length, width];
+  if (orientation?.toUpperCase() === 'HORIZONTAL') {
+    return [width, length];  // width = X, length = Y
+  } else if (orientation?.toUpperCase() === 'VERTICAL') {
+    return [length, width];  // width = Y, length = X
+  } else {
+    throw new Error('Unknown orientation: ' + orientation);
   }
-  return [width, length];
 }
 
 export function getOrientedSize(sizeOrArray, orientation) {
