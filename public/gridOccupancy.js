@@ -58,8 +58,8 @@ export function isPlacementSupported(x, y, z, width, length, orientation, occupa
 }
 
 // Mark brick studs as occupied in the grid
-export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGrid) {
-  const [w, l] = getOrientedDimensions(width, length, orientation);
+export function markBrickOnGrid(x, y, z, size, orientation, occupancyGrid) {
+  const [w, l] = getOrientedDimensions(size, orientation);
 
   for (let dx = 0; dx < w; dx++) {
     for (let dy = 0; dy < l; dy++) {
@@ -77,8 +77,8 @@ export function markBrickOnGrid(x, y, z, width, length, orientation, occupancyGr
 }
 
 
-export function isPlacementClear(x, y, z, width, length, orientation, occupancyGrid) {
-  const [w, l] = getOrientedDimensions(width, length, orientation);
+export function isPlacementClear(x, y, z, size, orientation, occupancyGrid) {
+  const [w, l] = getOrientedDimensions(size, orientation);
   if (x + w > gridWidth || y + l > gridHeight) return false; // Out of bounds  
 
   for (let dx = 0; dx < w; dx++) {
